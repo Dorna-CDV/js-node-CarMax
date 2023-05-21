@@ -9,3 +9,6 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
+
+//TRZEBA URUCHOMIĆ KOIMENDĘ npm install express
+//POTEM http://localhost:3000/
