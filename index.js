@@ -16,7 +16,7 @@ db.on('open', () => {
   console.log('Połączono z bazą danych SQLite');
 
   app.listen(port, () => {
-    console.log('Serwer Express nasłuchuje na porcie ${port}');
+    console.log(`Serwer Express nasłuchuje na porcie ${port}`);
   });
 });
 db.on('error', (err) => {
@@ -56,7 +56,39 @@ app.get('/users', (req, res) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.send(rows);
+      // Tworzenie tabeli HTML z klasą 'users-table'
+      let tableHTML = '<table class="users-table">';
+      
+      // Dodawanie nagłówków tabeli z klasą 'table-header'
+      tableHTML += '<tr class="table-header"><th>ID</th><th>Name</th><th>Email</th></tr>';
+
+      // Generowanie wierszy tabeli na podstawie danych
+      rows.forEach(row => {
+        tableHTML += `<tr><td>${row.id}</td><td>${row.name}</td><td>${row.email}</td></tr>`;
+      });
+
+      // Zamykanie tabeli HTML
+      tableHTML += '</table>';
+
+      // Dodawanie styli CSS
+      const cssStyles = `
+        <style>
+          .users-table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+          .users-table td, .users-table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+          }
+          .table-header {
+            background-color: #f2f2f2;
+          }
+        </style>
+      `;
+
+      // Wysyłanie odpowiedzi z tabelą HTML i styli CSS
+      res.send(`${cssStyles}${tableHTML}`);
     }
   });
 });
