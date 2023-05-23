@@ -1,4 +1,7 @@
 const express = require('express');
+const axios = require('axios');
+
+
 const app = express();
 const port = 3000;
 
@@ -33,5 +36,9 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
-//TRZEBA URUCHOMIĆ KOIMENDĘ npm install express
+//TRZEBA URUCHOMIĆ KOMENDĘ npm install express
 //POTEM http://localhost:3000/
+
+
+
+//node index.js
