@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Formularz Rejestracji</title>
+  <style>
+    .form-container {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .form-container input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .form-container button {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Rejestracja</h2>
+    <form id="register-form">
+      <input type="text" id="username" placeholder="Nazwa użytkownika" required>
+      <input type="password" id="password" placeholder="Hasło" required>
+      <button type="submit">Zarejestruj</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      var username = document.getElementById('username').value;
+      var password = document.getElementById('password').value;
+
+      // Wykonaj żądanie POST do endpointu rejestracji
+      fetch('http://localhost/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: username, password: password })
+      })
+      .then(function(response) {
+        if (response.ok) {
+          alert('Użytkownik został zarejestrowany.');
+        } else if (response.status === 409) {
+          alert('Nazwa użytkownika jest już zajęta.');
+        } else {
+          alert('Wystąpił błąd serwera.');
+        }
+      })
+      .catch(function(error) {
+        console.error(error);
+        alert('Wystąpił błąd serwera.');
+      });
+    });
+  </script>
+</body>
+</html>

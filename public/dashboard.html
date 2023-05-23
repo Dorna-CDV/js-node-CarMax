@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lista użytkowników</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <h2>Lista użytkowników</h2>
+  <table id="users-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nazwa użytkownika</th>
+        <th>Hasło</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    fetch('http://localhost/users')
+      .then(response => response.json())
+      .then(data => {
+        const usersTable = document.getElementById('users-table');
+        const tbody = usersTable.querySelector('tbody');
+
+        data.forEach(user => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.username}</td>
+            <td>${user.password}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  </script>
+</body>
+</html>

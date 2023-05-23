@@ -1,12 +1,15 @@
 const express = require('express'); // to jest zeby postawic serwer http
 const axios = require('axios'); // to jest zeby polaczyc sie do zewnetrzego api w naszym przypadku CEPIK
 const sqlite3 = require('sqlite3'); // to jest do bazy danych w naszym przypadku SQLite
-
+const bcrypt = require('bcrypt'); // to do hashowania haseł
+const path = require('path');
+const cors = require('cors'); // zeby frontend i backend moglo byc z innej domeny ?
+const jwt = require('jsonwebtoken');
 
 // Tworzenie instancji aplikacji Express
 const app = express();
 const port = 80;
-const dbPath = 'database/database.db'; // Ścieżka do pliku bazy danych SQLite
+const dbPath = 'database/database.sqlite'; // Ścieżka do pliku bazy danych SQLite
 
 
 // Tworzenie obiektu bazy danych SQLite
@@ -23,20 +26,123 @@ db.on('error', (err) => {
   console.error('Błąd połączenia z bazą danych:', err);
 });
 
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(cors());
+
+
+const secret = 'tajny_klucz'; // Dodajemy tajny klucz używany do podpisywania i weryfikacji tokenów JWT
+
 // Tworzenie tabeli Users
 db.serialize(() => {
-  db.run('CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)');
-
+  db.run('CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT)');
+/*
   // Dodawanie przykładowych użytkowników do tabeli
   const insertUser = db.prepare('INSERT INTO Users (name, email) VALUES (?, ?)');
   insertUser.run('John Doe', 'john@example.com');
   insertUser.run('Jane Smith', 'jane@example.com');
   insertUser.finalize();
-
+*/
 });
 
 
 
+
+// Endpoint rejestracji użytkownika
+app.post('/register', (req, res) => {
+  const { username, password } = req.body;
+
+  // Sprawdź, czy użytkownik już istnieje w bazie danych
+  db.get('SELECT * FROM users WHERE username = ?', username, (err, row) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Wystąpił błąd serwera.');
+    }
+
+    if (row) {
+      return res.status(409).send('Nazwa użytkownika jest już zajęta.');
+    }
+
+    // Haszuj hasło przed zapisaniem do bazy danych
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Wystąpił błąd serwera.');
+      }
+
+      // Zapisz użytkownika do bazy danych
+      db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, hash], (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Wystąpił błąd serwera.');
+        }
+
+        res.status(201).send('Użytkownik został zarejestrowany.');
+      });
+    });
+  });
+});
+
+
+// Endpoint logowania użytkownika
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // Pobierz użytkownika z bazy danych
+  db.get('SELECT * FROM users WHERE username = ?', username, (err, row) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Wystąpił błąd serwera.');
+    }
+
+    if (!row) {
+      return res.status(401).send('Nieprawidłowa nazwa użytkownika lub hasło.');
+    }
+
+    // Porównaj hasło z haszem przechowywanym w bazie danych
+    bcrypt.compare(password, row.password, (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Wystąpił błąd serwera.');
+      }
+
+      if (result) {
+        // Jeśli uwierzytelnienie jest prawidłowe, generujemy token JWT
+        const token = jwt.sign({ username }, secret, { expiresIn: '1h' });
+        return res.status(200).json({ token }); // Zwracamy token w odpowiedzi
+      } else {
+        return res.status(401).send('Nieprawidłowa nazwa użytkownika lub hasło.');
+      }
+    });
+  });
+});
+
+
+
+// Middleware do weryfikacji tokena JWT
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.sendStatus(401); // Brak tokena, nieautoryzowany dostęp
+  }
+
+  jwt.verify(token, secret, (err, user) => {
+    if (err) {
+      return res.sendStatus(403); // Nieprawidłowy token, dostęp zabroniony
+    }
+
+    req.user = user;
+    next();
+  });
+}
+
+
+// Endpoint chroniony tokenem JWT
+app.get('/protected', authenticateToken, (req, res) => {
+  res.send(`Witaj, ${req.user.username}! Dostęp do chronionego zasobu.`);
+});
 
 // Endpoint obsługujący żądanie GET
 app.get('/', (req, res) => {
@@ -50,54 +156,20 @@ app.get('/', (req, res) => {
 
 
 
-// Endpoint GET, pobierający wszystkie rekordy z tabeli Users
+/*
 app.get('/users', (req, res) => {
-  db.all('SELECT * FROM Users', (err, rows) => {
+  db.all('SELECT * FROM users', (err, rows) => {
     if (err) {
-      res.status(500).send(err);
+      console.error(err);
+      res.status(500).json({ error: 'Wystąpił błąd serwera' });
     } else {
-      // Tworzenie tabeli HTML z klasą 'users-table'
-      let tableHTML = '<table class="users-table">';
-      
-      // Dodawanie nagłówków tabeli z klasą 'table-header'
-      tableHTML += '<tr class="table-header"><th>ID</th><th>Name</th><th>Email</th></tr>';
-
-      // Generowanie wierszy tabeli na podstawie danych
-      rows.forEach(row => {
-        tableHTML += `<tr><td>${row.id}</td><td>${row.name}</td><td>${row.email}</td></tr>`;
-      });
-
-      // Zamykanie tabeli HTML
-      tableHTML += '</table>';
-
-      // Dodawanie styli CSS
-      const cssStyles = `
-        <style>
-          .users-table {
-            border-collapse: collapse;
-            width: 100%;
-          }
-          .users-table td, .users-table th {
-            border: 1px solid #ddd;
-            padding: 8px;
-          }
-          .table-header {
-            background-color: #f2f2f2;
-          }
-        </style>
-      `;
-
-      // Wysyłanie odpowiedzi z tabelą HTML i styli CSS
-      res.send(`${cssStyles}${tableHTML}`);
+      res.json(rows);
     }
   });
 });
 
-
-
-
-
-
+*/
+/*
 // pobranie z cepika
 app.get('/cepik', async (req, res) => {
   try {
@@ -109,39 +181,9 @@ app.get('/cepik', async (req, res) => {
     res.status(500).send('Wystąpił błąd podczas komunikacji z CEPIK API.');
   }
 });
-
-
-
-
-
-
-
-
-/*
-// Endpoint do odczytu wszystkich danych
-app.get('/data', (req, res) => {
-  // Tu umieść logikę pobierania wszystkich danych
-  // Możesz użyć bazy danych lub innych źródeł danych
-  // Następnie zwróć odpowiedź w formacie JSON
-  const data = [
-    { id: 1, name: 'Example 1' },
-    { id: 2, name: 'Example 2' },
-    { id: 3, name: 'Example 3' }
-  ];
-  res.json(data);
-});
-
-// Endpoint do tworzenia nowych danych
-app.post('/data', (req, res) => {
-  // Tu umieść logikę tworzenia nowych danych
-  // Możesz otrzymać dane przesłane przez klienta i zapisać je w bazie danych lub innym miejscu
-  // Następnie zwróć odpowiedź z potwierdzeniem utworzenia
-  const newData = { id: 4, name: 'New Example' };
-  res.json(newData);
-});
-
-
 */
+
+
 
 
 //TRZEBA URUCHOMIĆ KOMENDĘ npm install express
