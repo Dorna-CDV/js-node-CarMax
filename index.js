@@ -19,7 +19,7 @@ db.on('open', () => {
   console.log('Połączono z bazą danych SQLite');
 
   app.listen(port, () => {
-    console.log(`Serwer Express nasłuchuje na porcie ${port}`);
+    console.log(`Serwer Express nasłuchuje na porcie ${port} Teraz uruchom login.html`);
   });
 });
 db.on('error', (err) => {
@@ -36,7 +36,31 @@ const secret = 'tajny_klucz'; // Dodajemy tajny klucz używany do podpisywania i
 // Tworzenie tabeli Users
 db.serialize(() => {
   db.run('CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY AUTOINCREMENT, id_karty INTEGER, username TEXT, password TEXT, imie TEXT, nazwisko TEXT, email TEXT, numer_telefonu TEXT)');
-/*
+  db.run(`CREATE TABLE IF NOT EXISTS Auto (id_auta INTEGER PRIMARY KEY AUTOINCREMENT,marka TEXT,model TEXT,typ_nadwozia TEXT,rok_produkcji INTEGER,przebieg INTEGER,pojemnosc REAL,moc INTEGER,rodzaj_paliwa TEXT,cena REAL)`);
+  
+  // Dodawanie przykładowych rekordów do tabeli Auto
+  const insertAuto = db.prepare(`
+    INSERT INTO Auto (marka, model, typ_nadwozia, rok_produkcji, przebieg, pojemnosc, moc, rodzaj_paliwa, cena)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  insertAuto.run('Ford', 'Focus', 'Sedan', 2018, 50000, 1.6, 120, 'Benzyna', 25000);
+  insertAuto.run('Toyota', 'Corolla', 'Sedan', 2017, 60000, 1.8, 140, 'Benzyna', 28000);
+  insertAuto.run('Volkswagen', 'Golf', 'Hatchback', 2019, 40000, 1.4, 110, 'Benzyna', 22000);
+  insertAuto.run('BMW', '3 Series', 'Sedan', 2016, 80000, 2.0, 180, 'Diesel', 35000);
+  insertAuto.run('Audi', 'A4', 'Sedan', 2017, 70000, 2.0, 160, 'Benzyna', 30000);
+  insertAuto.run('Mercedes-Benz', 'C-Class', 'Sedan', 2018, 55000, 2.0, 170, 'Diesel', 32000);
+  insertAuto.run('Honda', 'Civic', 'Sedan', 2019, 35000, 1.5, 130, 'Benzyna', 23000);
+  insertAuto.run('Hyundai', 'Elantra', 'Sedan', 2017, 60000, 1.6, 120, 'Benzyna', 20000);
+  insertAuto.run('Kia', 'Optima', 'Sedan', 2018, 55000, 2.0, 160, 'Benzyna', 25000);
+  insertAuto.run('Mazda', 'Mazda3', 'Hatchback', 2019, 40000, 2.0, 155, 'Benzyna', 27000);
+
+  insertAuto.finalize();
+  
+
+
+
+  /*
   // Dodawanie przykładowych użytkowników do tabeli
   const insertUser = db.prepare('INSERT INTO Users (name, email) VALUES (?, ?)');
   insertUser.run('John Doe', 'john@example.com');
@@ -138,16 +162,16 @@ function authenticateToken(req, res, next) {
   });
 }
 
-
+/*
 // Endpoint chroniony tokenem JWT
 app.get('/protected', authenticateToken, (req, res) => {
   res.send(`Witaj, ${req.user.username}! Dostęp do chronionego zasobu.`);
 });
-
+*/
 // Endpoint obsługujący żądanie GET
 app.get('/', (req, res) => {
   // Tworzenie odpowiedzi 
-  const response = 'WITAMY W API';
+  const response = 'HELLO API';
 
   // Wysyłanie odpowiedzi
   res.send(response);
@@ -155,6 +179,17 @@ app.get('/', (req, res) => {
 
 
 
+// Endpoint pobierający listę aut
+app.get('/cars', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM Auto', (err, rows) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Wystąpił błąd serwera' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
 
 
 // Endpoint pobierający listę użytkowników
@@ -188,8 +223,10 @@ app.get('/cepik', async (req, res) => {
 
 
 //TRZEBA URUCHOMIĆ KOMENDĘ npm install express
-//POTEM 127.0.0.1 w przegladarce
+//
 
 
 
 //node index.js
+
+

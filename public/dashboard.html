@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard</title>
+  <title>Oferty</title>
   <meta charset="UTF-8">
   <style>
     body {
@@ -9,8 +9,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      margin: 40px; /* Dodane marginesy góra/dół */
       background-color: #f2f2f2;
     }
 
@@ -18,21 +17,22 @@
       text-align: center;
     }
 
-    #users-table {
-      width: 400px;
-      margin-bottom: 20px;
-      border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    #cars-table {
+      width: 90%; /* Zmieniona wartość szerokości */
+    max-width: 800px; /* Opcjonalnie, można ustawić maksymalną szerokość tabeli */
+    margin-bottom: 20px;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    #users-table th,
-    #users-table td {
+    #cars-table th,
+    #cars-table td {
       padding: 10px;
       border-bottom: 1px solid #ddd;
     }
 
-    #users-table th {
+    #cars-table th {
       background-color: #f2f2f2;
       font-weight: bold;
       text-align: left;
@@ -61,13 +61,20 @@
   </style>
 </head>
 <body>
-  <h2>Dashboard</h2>
-  <table id="users-table">
+  <h1>Oferty</h1>
+  <table id="cars-table">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Nazwa użytkownika</th>
-        <th>Hasło</th>
+       <!-- <th>ID auta</th>-->
+        <th>Marka</th>
+        <th>Model</th>
+        <th>Typ nadwozia</th>
+        <th>Rok produkcji</th>
+        <th>Przebieg</th>
+        <th>Pojemność</th>
+        <th>Moc</th>
+        <th>Rodzaj paliwa</th>
+        <th>Cena</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -82,7 +89,7 @@
     if (!token) {
       window.location.href = 'login.html'; // Redirect to the login page
     } else {
-      fetch('http://localhost/users', {
+      fetch('http://localhost/cars', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -95,15 +102,22 @@
           }
         })
         .then(data => {
-          const usersTable = document.getElementById('users-table');
-          const tbody = usersTable.querySelector('tbody');
+          const carsTable = document.getElementById('cars-table');
+          const tbody = carsTable.querySelector('tbody');
 
-          data.forEach(user => {
+          data.forEach(car => {
             const row = document.createElement('tr');
             row.innerHTML = `
-              <td>${user.id}</td>
-              <td>${user.username}</td>
-              <td>${user.password}</td>
+            <!-- <td>${car.id_auta}</td> -->
+              <td>${car.marka}</td>
+              <td>${car.model}</td>
+              <td>${car.typ_nadwozia}</td>
+              <td>${car.rok_produkcji}</td>
+              <td>${car.przebieg}</td>
+              <td>${car.pojemnosc}</td>
+              <td>${car.moc}</td>
+              <td>${car.rodzaj_paliwa}</td>
+              <td>${car.cena}</td>
             `;
             tbody.appendChild(row);
           });
