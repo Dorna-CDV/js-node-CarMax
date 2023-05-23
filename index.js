@@ -37,7 +37,7 @@ const secret = 'tajny_klucz'; // Dodajemy tajny klucz używany do podpisywania i
 db.serialize(() => {
   db.run('CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY AUTOINCREMENT, id_karty INTEGER, username TEXT, password TEXT, imie TEXT, nazwisko TEXT, email TEXT, numer_telefonu TEXT)');
   db.run(`CREATE TABLE IF NOT EXISTS Auto (id_auta INTEGER PRIMARY KEY AUTOINCREMENT,marka TEXT,model TEXT,typ_nadwozia TEXT,rok_produkcji INTEGER,przebieg INTEGER,pojemnosc REAL,moc INTEGER,rodzaj_paliwa TEXT,cena REAL)`);
-  
+  db.run(`CREATE TABLE IF NOT EXISTS Karty (id_karty INTEGER PRIMARY KEY AUTOINCREMENT, numer_karty TEXT, kod_cvv TEXT, data_waznosci TEXT)`);
   // Dodawanie przykładowych rekordów do tabeli Auto
   const insertAuto = db.prepare(`
     INSERT INTO Auto (marka, model, typ_nadwozia, rok_produkcji, przebieg, pojemnosc, moc, rodzaj_paliwa, cena)
@@ -68,6 +68,21 @@ db.serialize(() => {
   insertUser.finalize();
 */
 });
+
+
+app.get('/loggedUserData', authenticateToken, (req, res) => {//tutaj trzeba dorobic zeby zwracalo poprawnie
+  const userId = req.user.id;
+
+  db.get('SELECT * FROM Users WHERE id = 1', userId, (err, row) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('An error occurred while retrieving user data.');
+    } else {
+      res.send(row);
+    }
+  });
+});
+
 
 
 
