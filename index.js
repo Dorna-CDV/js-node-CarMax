@@ -6,8 +6,15 @@ const app = express();
 const port = 3000;
 
 // Domyślne powitanie
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+app.get('/', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.cepik.gov.pl/pojazdy?wojewodztwo=30&data-od=20221212&data-do=20230505&typ-daty=1&tylko-zarejestrowane=true&pokaz-wszystkie-pola=false&limit=100&page=1');
+    const data = response.data;
+    res.send(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Wystąpił błąd podczas komunikacji z API.');
+  }
 });
 
 // Endpoint do odczytu wszystkich danych
