@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 // Tworzenie instancji aplikacji Express
 const app = express();
 const port = 80;
-const dbPath = 'database/database.sqlite'; // Ścieżka do pliku bazy danych SQLite
+const dbPath = 'database/database.db'; // Ścieżka do pliku bazy danych SQLite
 
 
 // Tworzenie obiektu bazy danych SQLite
@@ -35,7 +35,7 @@ const secret = 'tajny_klucz'; // Dodajemy tajny klucz używany do podpisywania i
 
 // Tworzenie tabeli Users
 db.serialize(() => {
-  db.run('CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT)');
+  db.run('CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY AUTOINCREMENT, id_karty INTEGER, username TEXT, password TEXT, imie TEXT, nazwisko TEXT, email TEXT, numer_telefonu TEXT)');
 /*
   // Dodawanie przykładowych użytkowników do tabeli
   const insertUser = db.prepare('INSERT INTO Users (name, email) VALUES (?, ?)');
@@ -156,9 +156,10 @@ app.get('/', (req, res) => {
 
 
 
-/*
-app.get('/users', (req, res) => {
-  db.all('SELECT * FROM users', (err, rows) => {
+
+// Endpoint pobierający listę użytkowników
+app.get('/users', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM Users', (err, rows) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Wystąpił błąd serwera' });
@@ -168,7 +169,7 @@ app.get('/users', (req, res) => {
   });
 });
 
-*/
+
 /*
 // pobranie z cepika
 app.get('/cepik', async (req, res) => {

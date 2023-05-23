@@ -1,11 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Lista użytkowników</title>
+  <title>Dashboard</title>
   <meta charset="UTF-8">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f2f2f2;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    #users-table {
+      width: 400px;
+      margin-bottom: 20px;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #users-table th,
+    #users-table td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    #users-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    #logout-button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #logout-button:hover {
+      background-color: #45a049;
+    }
+
+    #error-message {
+      color: red;
+      display: none;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Lista użytkowników</h2>
+  <h2>Dashboard</h2>
   <table id="users-table">
     <thead>
       <tr>
@@ -16,27 +72,53 @@
     </thead>
     <tbody></tbody>
   </table>
+  <button id="logout-button">Wyloguj</button> <!-- Przycisk wylogowania -->
+
+  <div id="error-message">Nie jesteś zalogowany</div> <!-- Komunikat o błędzie -->
 
   <script>
-    fetch('http://localhost/users')
-      .then(response => response.json())
-      .then(data => {
-        const usersTable = document.getElementById('users-table');
-        const tbody = usersTable.querySelector('tbody');
+    const token = localStorage.getItem('token');
 
-        data.forEach(user => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${user.id}</td>
-            <td>${user.username}</td>
-            <td>${user.password}</td>
-          `;
-          tbody.appendChild(row);
-        });
+    if (!token) {
+      window.location.href = 'login.html'; // Redirect to the login page
+    } else {
+      fetch('http://localhost/users', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       })
-      .catch(error => {
-        console.error(error);
-      });
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Błąd pobierania danych');
+          }
+        })
+        .then(data => {
+          const usersTable = document.getElementById('users-table');
+          const tbody = usersTable.querySelector('tbody');
+
+          data.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${user.id}</td>
+              <td>${user.username}</td>
+              <td>${user.password}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    const logoutButton = document.getElementById('logout-button');
+
+    logoutButton.addEventListener('click', () => {
+      localStorage.removeItem('token'); // Remove the token from Local Storage
+      window.location.href = 'login.html'; // Redirect to the login page
+    });
   </script>
 </body>
 </html>

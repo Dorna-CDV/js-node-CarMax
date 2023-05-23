@@ -3,42 +3,97 @@
 <head>
   <title>Logowanie</title>
   <style>
-    .register-button {
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f2f2f2;
+    }
+
+    .login-form {
+      max-width: 300px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .login-form label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    .login-form button {
+      width: 100%;
+      padding: 10px;
       background-color: #4CAF50;
       color: white;
-      padding: 10px 20px;
       border: none;
-      cursor: pointer;
       border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .login-form button:hover {
+      background-color: #45a049;
+    }
+
+    .register-button {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .register-button a {
+      color: #4CAF50;
       text-decoration: none;
     }
 
-    .register-button:hover {
-      background-color: #45a049;
+    .register-button a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <h2>Logowanie</h2>
-  <form id="login-form">
-    <div>
-      <label for="username">Nazwa użytkownika:</label>
-      <input type="text" id="username" name="username">
-    </div>
-    <div>
-      <label for="password">Hasło:</label>
-      <input type="password" id="password" name="password">
-    </div>
-    <button type="submit">Zaloguj</button>
-  </form>
+  <div class="login-form">
+    <h2>Logowanie</h2>
+    <form id="login-form">
+      <div>
+        <label for="username">Nazwa użytkownika:</label>
+        <input type="text" id="username" name="username">
+      </div>
+      <div>
+        <label for="password">Hasło:</label>
+        <input type="password" id="password" name="password">
+      </div>
+      <button type="submit">Zaloguj</button>
+    </form>
 
-  <div id="errorMessage" style="color: red; display: none;"></div>
-  <button class="register-button" onclick="window.location.href='register.html'">
-    Nie masz konta? Załóż je!
-  </button>
+    <div id="errorMessage" style="color: red; display: none;"></div>
+  </div>
+
+  <div class="register-button">
+    <a href="register.html">Nie masz konta? Załóż je!</a>
+  </div>
 
   <script>
     const loginForm = document.getElementById('login-form');
+    const errorMessage = document.getElementById('errorMessage');
 
     loginForm.addEventListener('submit', event => {
       event.preventDefault();
@@ -55,17 +110,25 @@
       })
       .then(response => {
         if (response.ok) {
-          console.log('Zalogowano pomyślnie');
-          window.location.href = 'dashboard.html';
+          return response.json(); // Odpowiedź zawiera token JWT
         } else {
-          console.log('Błąd logowania');
-          errorMessage.textContent = 'Błędne dane logowania';
-          errorMessage.style.display = 'block';
+          throw new Error('Błąd logowania');
         }
+      })
+      .then(data => {
+        const token = data.token; // Pobierz token JWT z odpowiedzi
+        // Przechowaj token w Local Storage lub ciasteczkach
+        localStorage.setItem('token', token);
+
+        console.log('Zalogowano pomyślnie');
+        console.log(token);
+        // Przekieruj użytkownika do innej strony (np. dashboard.html)
+        window.location.href = 'dashboard.html';
       })
       .catch(error => {
         console.error(error);
-        // Obsłuż błąd połączenia lub inne błędy
+        errorMessage.textContent = 'Błędne dane logowania';
+        errorMessage.style.display = 'block';
       });
     });
   </script>
