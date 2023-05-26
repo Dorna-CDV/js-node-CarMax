@@ -135,14 +135,14 @@
     <h2>Edytuj dane</h2>
     <form id="add-user-form">
       <label for="username">Nazwa użytkownika:</label>
-      <input type="text" id="username" required>
+      <input type="text" id="username" required disabled>
 
       <label for="imie">Imię:</label>
-      <input type="text" id="imie"   required>
+      <input type="text" id="imie"   required >
       <label for="nazwisko">Nazwisko:</label>
       <input type="text" id="nazwisko"   required>
       <label for="email">Email:</label>
-      <input type="text" id="email"  required>
+      <input type="text" id="email"  required >
       <label for="numer_telefonu">Numer telefonu:</label>
       <input type="text" id="numer_telefonu"  required>
       <!--<label for="numer_karty">Numer karty:</label> -->
@@ -349,46 +349,49 @@ function logoutButton() {
 
 
 function updateUserData() {
-  var token = localStorage.getItem('token');
-  var form = document.getElementById('add-user-form');
-  var username = form.elements.username.value;
-  var email = form.elements.email.value;
-  var imie = form.elements.imie.value;
-  var nazwisko = form.elements.nazwisko.value;
-  var numer_telefonu = form.elements.numer_telefonu.value;
-  var selectedCardId = document.getElementById('card-dropdown').value; //
-  // Wykonaj żądanie POST do endpointu aktualizacji danych użytkownika
-  fetch('http://localhost/updateUserData', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      //id: userId, // Użyj pobranego identyfikatora użytkownika
-      username: username, // Retrieve the username from somewhere or remove if not needed
-      imie: "chris",
-      nazwisko: "nazwisko",
-      email: "email",
-      numer_telefonu: "numer_telefonu",
-      id_karty: 2//parseInt(selectedCardId)
+    const token = localStorage.getItem('token');
+  document.getElementById('add-user-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var username = document.getElementById('username').value;
+    var email = document.getElementById('email').value;
+    var imie = document.getElementById('imie').value;
+    var nazwisko = document.getElementById('nazwisko').value;
+    var numer_telefonu = document.getElementById('numer_telefonu').value;
+    var selectedCardId = document.getElementById('card-dropdown').value; 
+
+    // Wykonaj żądanie POST do endpointu aktualizacji danych użytkownika
+    fetch('http://localhost/updateUserData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Dodaj nagłówek autoryzacji
+      },
+      body: JSON.stringify({
+        username: username, // Retrieve the username from somewhere or remove if not needed
+      imie: imie,
+      nazwisko: nazwisko,
+      email: email,
+      numer_telefonu: numer_telefonu,
+      id_karty: parseInt(selectedCardId)
+      })
     })
-  })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error('Błąd aktualizacji danych');
-      }
-    })
-    .then(function(data) {
-      console.log(data);
-      alert('Dane użytkownika zostały zaktualizowane.');
-    })
-    .catch(function(error) {
-      console.error(error);
-      alert('Wystąpił błąd podczas aktualizowania danych użytkownika.');
-    });
+      .then(async response => {
+      try {
+       const data = await response.json()
+       console.log('response data?', data)
+     } catch(error) {
+       console.log('Error happened here!')
+       console.error(error)
+     }
+      })
+      .catch(function(error) {
+        console.error(error);
+        alert('Wystąpił błąd podczas aktualizacji danych.');
+      });
+  });
+
+
 }
 
 
