@@ -19,11 +19,11 @@
 
     #cars-table {
       width: 90%; /* Zmieniona wartość szerokości */
-    max-width: 800px; /* Opcjonalnie, można ustawić maksymalną szerokość tabeli */
-    margin-bottom: 20px;
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 800px; /* Opcjonalnie, można ustawić maksymalną szerokość tabeli */
+      margin-bottom: 20px;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
     #cars-table th,
@@ -38,7 +38,7 @@
       text-align: left;
     }
 
-    #logout-button {
+    button {
       padding: 10px 20px;
       background-color: #4CAF50;
       color: white;
@@ -48,7 +48,7 @@
       font-size: 16px;
     }
 
-    #logout-button:hover {
+    button:hover {
       background-color: #45a049;
     }
 
@@ -60,89 +60,81 @@
     }
 
     /* Button used to open the contact form - fixed at the bottom of the page */
-.open-button {
-  background-color: #555;
-  color: white;
-  padding: 16px 20px;
-  border: none;
-  cursor: pointer;
-  opacity: 0.8;
-  position: fixed;
-  bottom: 23px;
-  right: 28px;
-  width: 280px;
-}
+    .open-button {
+      background-color: #555;
+      color: white;
+      padding: 16px 20px;
+      border: none;
+      cursor: pointer;
+      opacity: 0.8;
+      position: fixed;
+      bottom: 23px;
+      right: 28px;
+      width: 280px;
+    }
 
-/* The popup form - hidden by default */
-.form-popup {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  right: 15px;
-  border: 3px solid #f1f1f1;
-  z-index: 9;
-}
+    /* The popup form - hidden by default */
+    .form-popup {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      right: 15px;
+      border: 3px solid #f1f1f1;
+      z-index: 9;
+    }
 
-/* Add styles to the form container */
-.form-container {
-  max-width: 300px;
-  padding: 10px;
-  background-color: white;
-}
+    /* Add styles to the form container */
+    .form-container {
+      max-width: 300px;
+      padding: 10px;
+      background-color: white;
+    }
 
-/* Full-width input fields */
-.form-container input[type=text], .form-container input[type=password] {
-  width: 100%;
-  padding: 15px;
-  margin: 5px 0 22px 0;
-  border: none;
-  background: #f1f1f1;
-}
+    /* Full-width input fields */
+    .form-container input[type=text], .form-container input[type=password] {
+      width: 100%;
+      padding: 15px;
+      margin: 5px 0 22px 0;
+      border: none;
+      background: #f1f1f1;
+    }
 
-/* When the inputs get focus, do something */
-.form-container input[type=text]:focus, .form-container input[type=password]:focus {
-  background-color: #ddd;
-  outline: none;
-}
+    /* When the inputs get focus, do something */
+    .form-container input[type=text]:focus, .form-container input[type=password]:focus {
+      background-color: #ddd;
+      outline: none;
+    }
 
-/* Set a style for the submit/login button */
-.form-container .btn {
-  background-color: #04AA6D;
-  color: white;
-  padding: 16px 20px;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom:10px;
-  opacity: 0.8;
-}
+    /* Set a style for the submit/login button */
+    .form-container .btn {
+      background-color: #04AA6D;
+      color: white;
+      padding: 16px 20px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
 
-/* Add a red background color to the cancel button */
-.form-container .cancel {
-  background-color: red;
-}
+    /* Add a red background color to the cancel button */
+    .form-container .cancel {
+      background-color: red;
+    }
 
-/* Add some hover effects to buttons */
-.form-container .btn:hover, .open-button:hover {
-  opacity: 1;
-}
-
-
-
-
-
-
-
-
+    /* Add some hover effects to buttons */
+    .form-container .btn:hover, .open-button:hover {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
+  <div id="container"></div>
   <h1>Oferty dla </h1>
-  <div id="username"></div>
   <table id="cars-table">
     <thead>
       <tr>
-       <!-- <th>ID auta</th>-->
+        <!-- <th>ID auta</th>-->
         <th>Marka</th>
         <th>Model</th>
         <th>Typ nadwozia</th>
@@ -156,132 +148,93 @@
     </thead>
     <tbody></tbody>
   </table>
+
+
   <button id="logout-button">Wyloguj</button> <!-- Przycisk wylogowania -->
 
 
-
-  <button class="open-button" onclick="openForm()">Open Form</button>
-
-  <div class="form-popup" id="myForm">
-    <form action="/add_card" class="form-container">
-      <h1>Dodaj kartę</h1>
-  
-      <label for="user_id"><b>ID użytkownika</b></label>
-      <input type="text" placeholder="Wprowadź ID użytkownika" name="user_id" id="user_id" readonly>
-  
-      <label for="card_number"><b>Numer karty</b></label>
-      <input type="text" placeholder="Wprowadź numer karty" name="card_number" id="card_number" required>
-  
-      <label for="cvv_code"><b>Kod CVV</b></label>
-      <input type="text" placeholder="Wprowadź kod CVV" name="cvv_code" id="cvv_code" required>
-  
-      <label for="expiration_date"><b>Data ważności</b></label>
-      <input type="text" placeholder="Wprowadź datę ważności" name="expiration_date" id="expiration_date" required>
-  
-      <button type="submit" class="btn">Dodaj</button>
-      <button type="button" class="btn cancel" onclick="closeForm()">Zamknij</button>
-    </form>
-  </div>
-  
-  <script>
-    function openForm() {
-      document.getElementById("myForm").style.display = "block";
-    }
-  
-    function closeForm() {
-      document.getElementById("myForm").style.display = "none";
-    }
-  </script>
   
 
 
 
 
-  <div id="error-message">Nie jesteś zalogowany</div> <!-- Komunikat o błędzie -->
-
-  <script>
-    const token = localStorage.getItem('token');
-
-    
 
 
+<script>
+// Tworzenie przycisku
+const button = document.createElement('button');
+button.textContent = 'Panel użytkownika';
 
-    if (!token) {
-      window.location.href = 'login.html'; // Redirect to the login page
-    } else {
-      fetch('http://localhost/cars', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Błąd pobierania danych');
-          }
-        })
-        .then(data => {
-          const carsTable = document.getElementById('cars-table');
-          const tbody = carsTable.querySelector('tbody');
+// Dodawanie obsługi zdarzenia kliknięcia przycisku
+button.addEventListener('click', () => {
+  window.location.href = 'userPanel.html'; // Adres strony, do której chcesz się przekierować
+});
 
-          data.forEach(car => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-            <!-- <td>${car.id_auta}</td> -->
-              <td>${car.marka}</td>
-              <td>${car.model}</td>
-              <td>${car.typ_nadwozia}</td>
-              <td>${car.rok_produkcji}</td>
-              <td>${car.przebieg}</td>
-              <td>${car.pojemnosc}</td>
-              <td>${car.moc}</td>
-              <td>${car.rodzaj_paliwa}</td>
-              <td>${car.cena}</td>
-            `;
-            tbody.appendChild(row);
-          });
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    }
+// Dodawanie przycisku do kontenera na stronie
+const container = document.getElementById('container'); // Przykładowy identyfikator kontenera
+container.appendChild(button);
 
-    const logoutButton = document.getElementById('logout-button');
 
-    logoutButton.addEventListener('click', () => {
-      localStorage.removeItem('token'); // Remove the token from Local Storage
-      window.location.href = 'login.html'; // Redirect to the login page
-    });
 
-    
-    
+function fetchCarsData(){
+  const token = localStorage.getItem('token');
 
-if (!token) {
-  window.location.href = 'login.html'; // Przekierowanie do strony logowania // zle zwraca !!!!
-} else {
-  fetch('http://localhost/loggedUserData', {
+  if (!token) {
+    window.location.href = 'login.html'; // Przekieruj na stronę logowania, jeśli brakuje tokenu
+    return;
+  }
+
+  fetch('http://localhost/cars', {
     headers: {
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`
     }
   })
     .then(response => {
       if (response.ok) {
-        return response.text(); // Odczytanie odpowiedzi jako tekst
+        return response.json();
       } else {
-        throw new Error('Błąd pobierania danych użytkownika');
+        throw new Error('Błąd pobierania danych');
       }
     })
     .then(data => {
-      // Tutaj możesz użyć odczytanych danych 'data' według swoich potrzeb
-      console.log(data);
+      const carsTable = document.getElementById('cars-table');
+      const tbody = carsTable.querySelector('tbody');
+      tbody.innerHTML = ''; // Wyczyść zawartość tabeli
+
+      data.forEach(car => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <!-- <td>${car.id_auta}</td> -->
+          <td>${car.marka}</td>
+          <td>${car.model}</td>
+          <td>${car.typ_nadwozia}</td>
+          <td>${car.rok_produkcji}</td>
+          <td>${car.przebieg}</td>
+          <td>${car.pojemnosc}</td>
+          <td>${car.moc}</td>
+          <td>${car.rodzaj_paliwa}</td>
+          <td>${car.cena}</td>
+        `;
+        tbody.appendChild(row);
+      });
     })
     .catch(error => {
-      console.error('Wystąpił błąd podczas pobierania danych użytkownika:', error);
+      console.error(error);
     });
 }
 
-    
-  </script>
+function logoutButton() {
+  const token = localStorage.getItem('token');
+
+  const logoutButton = document.getElementById('logout-button');
+  logoutButton.addEventListener('click', () => {
+    localStorage.removeItem('token'); // Usuń token z Local Storage
+    window.location.href = 'login.html'; // Przekieruj na stronę logowania
+  });
+}
+
+fetchCarsData();
+logoutButton();
+</script>
 </body>
 </html>

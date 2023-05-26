@@ -39,24 +39,35 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS Auto (id_auta INTEGER PRIMARY KEY AUTOINCREMENT,marka TEXT,model TEXT,typ_nadwozia TEXT,rok_produkcji INTEGER,przebieg INTEGER,pojemnosc REAL,moc INTEGER,rodzaj_paliwa TEXT,cena REAL)`);
   db.run(`CREATE TABLE IF NOT EXISTS Karty (id_karty INTEGER PRIMARY KEY AUTOINCREMENT, numer_karty TEXT, kod_cvv TEXT, data_waznosci TEXT)`);
   // Dodawanie przykładowych rekordów do tabeli Auto
-  const insertAuto = db.prepare(`
-    INSERT INTO Auto (marka, model, typ_nadwozia, rok_produkcji, przebieg, pojemnosc, moc, rodzaj_paliwa, cena)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
 
-  insertAuto.run('Ford', 'Focus', 'Sedan', 2018, 50000, 1.6, 120, 'Benzyna', 25000);
-  insertAuto.run('Toyota', 'Corolla', 'Sedan', 2017, 60000, 1.8, 140, 'Benzyna', 28000);
-  insertAuto.run('Volkswagen', 'Golf', 'Hatchback', 2019, 40000, 1.4, 110, 'Benzyna', 22000);
-  insertAuto.run('BMW', '3 Series', 'Sedan', 2016, 80000, 2.0, 180, 'Diesel', 35000);
-  insertAuto.run('Audi', 'A4', 'Sedan', 2017, 70000, 2.0, 160, 'Benzyna', 30000);
-  insertAuto.run('Mercedes-Benz', 'C-Class', 'Sedan', 2018, 55000, 2.0, 170, 'Diesel', 32000);
-  insertAuto.run('Honda', 'Civic', 'Sedan', 2019, 35000, 1.5, 130, 'Benzyna', 23000);
-  insertAuto.run('Hyundai', 'Elantra', 'Sedan', 2017, 60000, 1.6, 120, 'Benzyna', 20000);
-  insertAuto.run('Kia', 'Optima', 'Sedan', 2018, 55000, 2.0, 160, 'Benzyna', 25000);
-  insertAuto.run('Mazda', 'Mazda3', 'Hatchback', 2019, 40000, 2.0, 155, 'Benzyna', 27000);
+  // Dodawanie przykładowych rekordów do tabeli Auto (jeśli tabela jest pusta)
+db.get('SELECT COUNT(*) as count FROM Auto', (err, result) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
 
-  insertAuto.finalize();
-  
+  const recordCount = result.count;
+  if (recordCount === 0) {
+    const insertAuto = db.prepare(`
+      INSERT INTO Auto (marka, model, typ_nadwozia, rok_produkcji, przebieg, pojemnosc, moc, rodzaj_paliwa, cena)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    insertAuto.run('Ford', 'Focus', 'Sedan', 2018, 50000, 1.6, 120, 'Benzyna', 25000);
+    insertAuto.run('Toyota', 'Corolla', 'Sedan', 2017, 60000, 1.8, 140, 'Benzyna', 28000);
+    insertAuto.run('Volkswagen', 'Golf', 'Hatchback', 2019, 40000, 1.4, 110, 'Benzyna', 22000);
+    insertAuto.run('BMW', '3 Series', 'Sedan', 2016, 80000, 2.0, 180, 'Diesel', 35000);
+    insertAuto.run('Audi', 'A4', 'Sedan', 2017, 70000, 2.0, 160, 'Benzyna', 30000);
+    insertAuto.run('Mercedes-Benz', 'C-Class', 'Sedan', 2018, 55000, 2.0, 170, 'Diesel', 32000);
+    insertAuto.run('Honda', 'Civic', 'Sedan', 2019, 35000, 1.5, 130, 'Benzyna', 23000);
+    insertAuto.run('Hyundai', 'Elantra', 'Sedan', 2017, 60000, 1.6, 120, 'Benzyna', 20000);
+    insertAuto.run('Kia', 'Optima', 'Sedan', 2018, 55000, 2.0, 160, 'Benzyna', 25000);
+    insertAuto.run('Mazda', 'Mazda3', 'Hatchback', 2019, 40000, 2.0, 155, 'Benzyna', 27000);
+
+    insertAuto.finalize();
+  }
+});
 
 
 
@@ -70,21 +81,45 @@ db.serialize(() => {
 });
 
 
-app.get('/loggedUserData', authenticateToken, (req, res) => {//tutaj trzeba dorobic zeby zwracalo poprawnie
-  const userId = req.user.id;
+app.get('/loggedUserData', authenticateToken, (req, res) => {
+  const username = req.user.username; // Pobierz nazwę użytkownika
 
-  db.get('SELECT * FROM Users WHERE id = 1', userId, (err, row) => {
+  db.get('SELECT id FROM Users WHERE username = ?', username, (err, row) => {
     if (err) {
       console.error(err);
-      res.status(500).send('An error occurred while retrieving user data.');
+      res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika.');
     } else {
-      res.send(row);
+      if (row) {
+        const userId = row.id; // Pobierz identyfikator użytkownika z wyniku zapytania
+        res.send({ userId }); // Zwróć identyfikator użytkownika w odpowiedzi
+      } else {
+        res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
+      }
     }
   });
 });
 
 
 
+// Endpoint dodawania karty
+app.post('/add_card', authenticateToken, (req, res) => {
+  // Odbierz dane z formularza
+  const { card_number, cvv_code, expiration_date } = req.body;
+
+  // Wykonaj logikę dodawania karty do bazy danych
+  db.run('INSERT INTO Karty (numer_karty, kod_cvv, data_waznosci) VALUES (?, ?, ?)', [card_number, cvv_code, expiration_date], (err) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Wystąpił błąd serwera podczas dodawania karty.');
+    }
+
+    res.status(200).json({messange:"Dodana kurde",
+      card_number: card_number,
+      cvv_code: cvv_code,
+      expiration_date: expiration_date
+    });
+  });
+});
 
 
 // Endpoint rejestracji użytkownika
@@ -197,6 +232,18 @@ app.get('/', (req, res) => {
 // Endpoint pobierający listę aut
 app.get('/cars', authenticateToken, (req, res) => {
   db.all('SELECT * FROM Auto', (err, rows) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Wystąpił błąd serwera' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+
+app.get('/cards', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM Karty', (err, rows) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Wystąpił błąd serwera' });

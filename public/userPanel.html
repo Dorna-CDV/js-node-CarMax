@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Oferty</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 40px; /* Dodane marginesy góra/dół */
+      background-color: #f2f2f2;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    #cars-table {
+      width: 90%; /* Zmieniona wartość szerokości */
+      max-width: 800px; /* Opcjonalnie, można ustawić maksymalną szerokość tabeli */
+      margin-bottom: 20px;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #cars-table th,
+    #cars-table td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    #cars-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    #logout-button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #logout-button:hover {
+      background-color: #45a049;
+    }
+
+    #error-message {
+      color: red;
+      display: none;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Button used to open the contact form - fixed at the bottom of the page */
+    .open-button {
+      background-color: #555;
+      color: white;
+      padding: 16px 20px;
+      border: none;
+      cursor: pointer;
+      opacity: 0.8;
+      position: fixed;
+      bottom: 23px;
+      right: 28px;
+      width: 280px;
+    }
+
+    /* The popup form - hidden by default */
+    .form-popup {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      right: 15px;
+      border: 3px solid #f1f1f1;
+      z-index: 9;
+    }
+
+    /* Add styles to the form container */
+    .form-container {
+      max-width: 300px;
+      padding: 10px;
+      background-color: white;
+    }
+
+    /* Full-width input fields */
+    .form-container input[type=text], .form-container input[type=password] {
+      width: 100%;
+      padding: 15px;
+      margin: 5px 0 22px 0;
+      border: none;
+      background: #f1f1f1;
+    }
+
+    /* When the inputs get focus, do something */
+    .form-container input[type=text]:focus, .form-container input[type=password]:focus {
+      background-color: #ddd;
+      outline: none;
+    }
+
+    /* Set a style for the submit/login button */
+    .form-container .btn {
+      background-color: #04AA6D;
+      color: white;
+      padding: 16px 20px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+
+    /* Add a red background color to the cancel button */
+    .form-container .cancel {
+      background-color: red;
+    }
+
+    /* Add some hover effects to buttons */
+    .form-container .btn:hover, .open-button:hover {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  
+  <h1>Oferty dla </h1>
+  <table id="cars-table">
+    <thead>
+      <tr>
+        <!-- <th>ID auta</th>-->
+        <th>id</th>
+        <th>id_karty</th>
+        <th>username</th>
+        <th>password</th>
+        <th>imie</th>
+        <th>nazwisko</th>
+        <th>email</th>
+        <th>numer_telefonu</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button id="logout-button">Wyloguj</button> <!-- Przycisk wylogowania -->
+
+
+  <table id="cards-table">
+    <thead>
+      <tr>
+        <th>Numer karty</th>
+        <th>Kod CVV</th>
+        <th>Data ważności</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  
+  
+  <div class="form-container">
+  <h2>Dodaj kartę</h2>
+  <form id="add-card-form">
+    <input type="text" id="card-number" placeholder="Numer karty" required>
+    <input type="text" id="cvv-code" placeholder="Kod CVV" required>
+    <input type="text" id="expiration-date" placeholder="Data ważności" required>
+    <button type="submit">Dodaj kartę</button>
+  </form>
+</div>
+
+
+
+
+
+
+<script>
+
+
+
+
+function fetchCardData(){
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = 'login.html'; // Przekieruj na stronę logowania, jeśli brakuje tokenu
+    return;
+  }
+
+  fetch('http://localhost/cards', {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+})
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('Błąd pobierania danych');
+    }
+  })
+  .then(data => {
+    const cardsTable = document.getElementById('cards-table');
+    const tbody = cardsTable.querySelector('tbody');
+    tbody.innerHTML = ''; // Wyczyść zawartość tabeli
+
+    data.forEach(card => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${card.numer_karty}</td>
+        <td>${card.kod_cvv}</td>
+        <td>${card.data_waznosci}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  })
+  .catch(error => {
+    console.error(error);
+  });
+ 
+
+}
+
+function AddCard(){
+  const token = localStorage.getItem('token');
+  document.getElementById('add-card-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var cardNumber = document.getElementById('card-number').value;
+    var cvvCode = document.getElementById('cvv-code').value;
+    var expirationDate = document.getElementById('expiration-date').value;
+
+    // Wykonaj żądanie POST do endpointu dodawania karty
+    fetch('http://localhost/add_card', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Dodaj nagłówek autoryzacji
+      },
+      body: JSON.stringify({
+        card_number: cardNumber,
+        cvv_code: cvvCode,
+        expiration_date: expirationDate
+      })
+    })
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Błąd dodawania karty');
+        }
+      })
+      .then(function(data) {
+        // Obsłuż odpowiedź po dodaniu karty
+        console.log(data);
+        alert('Karta została dodana.');
+        // Możesz wyświetlić komunikat o sukcesie lub zaktualizować tabelę z kartami
+        fetchCardData(); // Pobierz ponownie dane kart po dodaniu
+      })
+      .catch(function(error) {
+        console.error(error);
+        alert('Wystąpił błąd podczas dodawania karty.');
+      });
+  });
+}
+
+function logoutButton() {
+  const token = localStorage.getItem('token');
+
+  const logoutButton = document.getElementById('logout-button');
+  logoutButton.addEventListener('click', () => {
+    localStorage.removeItem('token'); // Usuń token z Local Storage
+    window.location.href = 'login.html'; // Przekieruj na stronę logowania
+  });
+}
+
+function fetchUsersData(){
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    window.location.href = 'login.html'; // Przekieruj na stronę logowania, jeśli brakuje tokenu
+    return;
+  }
+
+  fetch('http://localhost/users', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Błąd pobierania danych');
+      }
+    })
+    .then(data => {
+      const carsTable = document.getElementById('cars-table');
+      const tbody = carsTable.querySelector('tbody');
+      tbody.innerHTML = ''; // Wyczyść zawartość tabeli
+
+      data.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <!-- <td>${user.id}</td> -->
+          <td>${user.id}</td>
+          <td>${user.id_karty}</td>
+          <td>${user.username}</td>
+          <td>${user.password}</td>
+          <td>${user.imie}</td>
+          <td>${user.nazwisko}</td>
+          <td>${user.email}</td>
+          <td>${user.numer_telefonu}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    })
+    .catch(error => {
+      console.error(error);
+    });
+}
+
+
+
+fetchCardData();
+AddCard();
+logoutButton();
+fetchUsersData();
+</script>
+</body>
+</html>
