@@ -130,26 +130,31 @@
 </head>
 <body>
   
-  <h1>Oferty dla </h1>
-  <table id="cars-table">
-    <thead>
-      <tr>
-        <!-- <th>ID auta</th>-->
-        <th>id</th>
-        <th>id_karty</th>
-        <th>username</th>
-        <th>password</th>
-        <th>imie</th>
-        <th>nazwisko</th>
-        <th>email</th>
-        <th>numer_telefonu</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h1>Dane użytkownika</h1>
+  <div class="form-container">
+    <h2>Edytuj dane</h2>
+    <form id="add-user-form">
+      <label for="username">Nazwa użytkownika:</label>
+      <input type="text" id="username" required>
 
-  <button id="logout-button">Wyloguj</button> <!-- Przycisk wylogowania -->
+      <label for="imie">Imię:</label>
+      <input type="text" id="imie"   required>
+      <label for="nazwisko">Nazwisko:</label>
+      <input type="text" id="nazwisko"   required>
+      <label for="email">Email:</label>
+      <input type="text" id="email"  required>
+      <label for="numer_telefonu">Numer telefonu:</label>
+      <input type="text" id="numer_telefonu"  required>
+      <!--<label for="numer_karty">Numer karty:</label> -->
+      <!--<input type="text" id="numer_karty"  disabled> -->
+      
+      <select id="card-dropdown"></select>
+      
+      
+      <button type="submit">Zapisz</button>
+    </form>
 
+ 
 
   <table id="cards-table">
     <thead>
@@ -175,10 +180,74 @@
 
 
 
+<a href="dashboard.html">Powrót do strony głównej</a> <!-- Link powrotu do strony głównej -->
+<button id="logout-button">Wyloguj</button> <!-- Przycisk wylogowania -->
+
 
 
 
 <script>
+
+// Funkcja do generowania listy rozwijanej kart
+function generateCardDropdown(cards) {
+  const cardDropdown = document.getElementById('card-dropdown');
+
+  // Wyczyść istniejące opcje w liście rozwijanej
+  cardDropdown.innerHTML = '';
+
+  // Utwórz opcję domyślną (bez wybranej karty)
+  const defaultOption = document.createElement('option');
+  defaultOption.value = ''; // Wartość opcji domyślnej
+  defaultOption.textContent = 'Zmień numer karty';
+  cardDropdown.appendChild(defaultOption);
+
+  // Utwórz opcje dla każdej karty
+  cards.forEach(card => {
+    const option = document.createElement('option');
+    option.value = card.id_karty; // Wartość opcji to identyfikator karty
+    option.textContent = card.numer_karty; // Tekst opcji to nazwa karty
+    cardDropdown.appendChild(option);
+  });
+} 
+
+function fetchUserData() {
+  const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username'); // Get the username from Local Storage
+
+  if (!token) {
+    window.location.href = 'login.html'; // Redirect to the login page if token is missing
+    return;
+  }
+
+  fetch(`http://localhost/loggedUserData`, {
+    method: 'GET', // Change the method to GET
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Error fetching data');
+      }
+    })
+    .then(data => {
+      // Update the form fields with the retrieved data
+      document.getElementById('username').value = data.username;
+      document.getElementById('email').value = data.email;
+      document.getElementById('imie').value = data.imie;
+      document.getElementById('nazwisko').value = data.nazwisko;
+      document.getElementById('numer_telefonu').value = data.numer_telefonu;
+    })
+    .catch(error => {
+      const errorMessage = document.getElementById('error-message');
+      errorMessage.innerText = error.message;
+      errorMessage.style.display = 'block';
+    });
+}
+
+
 
 
 
@@ -203,6 +272,7 @@ function fetchCardData(){
     }
   })
   .then(data => {
+    generateCardDropdown(data);
     const cardsTable = document.getElementById('cards-table');
     const tbody = cardsTable.querySelector('tbody');
     tbody.innerHTML = ''; // Wyczyść zawartość tabeli
@@ -277,58 +347,67 @@ function logoutButton() {
   });
 }
 
-function fetchUsersData(){
-  const token = localStorage.getItem('token');
 
-  if (!token) {
-    window.location.href = 'login.html'; // Przekieruj na stronę logowania, jeśli brakuje tokenu
-    return;
-  }
-
-  fetch('http://localhost/users', {
+function updateUserData() {
+  var token = localStorage.getItem('token');
+  var form = document.getElementById('add-user-form');
+  var username = form.elements.username.value;
+  var email = form.elements.email.value;
+  var imie = form.elements.imie.value;
+  var nazwisko = form.elements.nazwisko.value;
+  var numer_telefonu = form.elements.numer_telefonu.value;
+  var selectedCardId = document.getElementById('card-dropdown').value; //
+  // Wykonaj żądanie POST do endpointu aktualizacji danych użytkownika
+  fetch('http://localhost/updateUserData', {
+    method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`
-    }
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      //id: userId, // Użyj pobranego identyfikatora użytkownika
+      username: username, // Retrieve the username from somewhere or remove if not needed
+      imie: "chris",
+      nazwisko: "nazwisko",
+      email: "email",
+      numer_telefonu: "numer_telefonu",
+      id_karty: 2//parseInt(selectedCardId)
+    })
   })
-    .then(response => {
+    .then(function(response) {
       if (response.ok) {
         return response.json();
       } else {
-        throw new Error('Błąd pobierania danych');
+        throw new Error('Błąd aktualizacji danych');
       }
     })
-    .then(data => {
-      const carsTable = document.getElementById('cars-table');
-      const tbody = carsTable.querySelector('tbody');
-      tbody.innerHTML = ''; // Wyczyść zawartość tabeli
-
-      data.forEach(user => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <!-- <td>${user.id}</td> -->
-          <td>${user.id}</td>
-          <td>${user.id_karty}</td>
-          <td>${user.username}</td>
-          <td>${user.password}</td>
-          <td>${user.imie}</td>
-          <td>${user.nazwisko}</td>
-          <td>${user.email}</td>
-          <td>${user.numer_telefonu}</td>
-        `;
-        tbody.appendChild(row);
-      });
+    .then(function(data) {
+      console.log(data);
+      alert('Dane użytkownika zostały zaktualizowane.');
     })
-    .catch(error => {
+    .catch(function(error) {
       console.error(error);
+      alert('Wystąpił błąd podczas aktualizowania danych użytkownika.');
     });
 }
 
 
 
-fetchCardData();
+
+
+
+
+
+
+
+
+
 AddCard();
+fetchCardData();
+fetchUserData();
+updateUserData();
 logoutButton();
-fetchUsersData();
+
 </script>
 </body>
 </html>

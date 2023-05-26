@@ -81,13 +81,13 @@ db.get('SELECT COUNT(*) as count FROM Auto', (err, result) => {
 });
 
 
-app.get('/loggedUserData', authenticateToken, (req, res) => {
+app.get('/loggedUserDataIDOnly', authenticateToken, (req, res) => {
   const username = req.user.username; // Pobierz nazwę użytkownika
 
   db.get('SELECT id FROM Users WHERE username = ?', username, (err, row) => {
     if (err) {
       console.error(err);
-      res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika.');
+      res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika backend.');
     } else {
       if (row) {
         const userId = row.id; // Pobierz identyfikator użytkownika z wyniku zapytania
@@ -101,6 +101,57 @@ app.get('/loggedUserData', authenticateToken, (req, res) => {
 
 
 
+app.get('/loggedUserData', authenticateToken, (req, res) => {
+  const username = req.user.username; // Pobierz nazwę użytkownika
+
+  db.get('SELECT * FROM Users WHERE username = ?', username, (err, row) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika.');
+    } else {
+      if (row) {
+        res.send(row); // Zwróć cały wiersz danych użytkownika w odpowiedzi
+      } else {
+        res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
+      }
+    }
+  });
+});
+
+
+app.post('/updateUserData', authenticateToken, (req, res) => {
+  const { username, imie, nazwisko, email, numer_telefonu, id_karty } = req.body;
+
+  db.get('SELECT id FROM Users WHERE username = ?', username, (err, row) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
+    }
+
+    if (row) {
+      const userId = row.id; // Retrieve the user ID from the query result
+      db.run(
+        'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id = ?',
+        [username, imie, nazwisko, email, numer_telefonu, id_karty, userId],
+        (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).send('Wystąpił błąd serwera podczas aktualizacji danych użytkownika.');
+          }
+          res.status(200).send('Dane użytkownika zostały zaktualizowane.');
+        }
+      );
+    } else {
+      res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
+    }
+  });
+});
+
+
+
+
+  
+
 // Endpoint dodawania karty
 app.post('/add_card', authenticateToken, (req, res) => {
   // Odbierz dane z formularza
@@ -113,7 +164,7 @@ app.post('/add_card', authenticateToken, (req, res) => {
       return res.status(500).send('Wystąpił błąd serwera podczas dodawania karty.');
     }
 
-    res.status(200).json({messange:"Dodana kurde",
+    res.status(200).json({messange:"Dodana karta",
       card_number: card_number,
       cvv_code: cvv_code,
       expiration_date: expiration_date
