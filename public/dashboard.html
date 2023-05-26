@@ -17,7 +17,7 @@
       text-align: center;
     }
 
-    #cars-table {
+    table {
       width: 90%; /* Zmieniona wartość szerokości */
       max-width: 800px; /* Opcjonalnie, można ustawić maksymalną szerokość tabeli */
       margin-bottom: 20px;
@@ -26,13 +26,13 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    #cars-table th,
-    #cars-table td {
+    table th,
+    table td {
       padding: 10px;
       border-bottom: 1px solid #ddd;
     }
 
-    #cars-table th {
+    table th {
       background-color: #f2f2f2;
       font-weight: bold;
       text-align: left;
@@ -150,6 +150,23 @@
   </table>
 
 
+  <h1>Transakcje</h1>
+  <table id="transactions-table">
+    <thead>
+      <tr>
+        <th>id_user</th>
+        <th>id_auta</th>
+        <th>status</th>
+        <th>cena</th>
+        <th>data_transakcji</th>
+        <th>data_odbioru</th>
+        <th>id_leasingu</th>
+        <th>id_ubezpieczenia</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+
+
   <button id="logout-button">Wyloguj</button> <!-- Przycisk wylogowania -->
 
 
@@ -233,7 +250,54 @@ function logoutButton() {
   });
 }
 
+
+function fetchTransactionsData(){
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    window.location.href = 'login.html'; // Przekieruj na stronę logowania, jeśli brakuje tokenu
+    return;
+  }
+  fetch('http://localhost/transactions', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Błąd pobierania danych');
+      }
+    })
+    .then(data => {
+      const transakcjeTable = document.getElementById('transactions-table');
+      const tbody = transakcjeTable.querySelector('tbody');
+      tbody.innerHTML = ''; // Wyczyść zawartość tabeli
+
+      // Wyświetlanie pobranych danych
+      data.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <!-- <td>${row.id_transakcji}</td>-->
+          <td>${row.id_user}</td>
+          <td>${row.id_auta}</td>
+          <td>${row.status}</td>
+          <td>${row.cena}</td>
+          <td>${row.data_transakcji}</td>
+          <td>${row.data_odbioru}</td>
+          <td>${row.id_leasingu}</td>
+          <td>${row.id_ubezpieczenia}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    });
+}
+
+
+
 fetchCarsData();
+fetchTransactionsData();
 logoutButton();
 </script>
 </body>

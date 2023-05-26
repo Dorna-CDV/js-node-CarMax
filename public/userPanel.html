@@ -153,7 +153,7 @@
       
       <button type="submit">Zapisz</button>
     </form>
-
+<div id="card-number-current-user"></div>
  
 
   <table id="cards-table">
@@ -234,6 +234,8 @@ function fetchUserData() {
     })
     .then(data => {
       // Update the form fields with the retrieved data
+      
+      document.getElementById('card-number-current-user').innerHTML = data.id_karty;
       document.getElementById('username').value = data.username;
       document.getElementById('email').value = data.email;
       document.getElementById('imie').value = data.imie;

@@ -35,10 +35,38 @@ const secret = 'tajny_klucz'; // Dodajemy tajny klucz używany do podpisywania i
 
 // Tworzenie tabeli Users
 db.serialize(() => {
-  db.run('CREATE TABLE IF NOT EXISTS Users (id INTEGER PRIMARY KEY AUTOINCREMENT, id_karty INTEGER, username TEXT, password TEXT, imie TEXT, nazwisko TEXT, email TEXT, numer_telefonu TEXT)');
+  db.run('CREATE TABLE IF NOT EXISTS Users (id_user INTEGER PRIMARY KEY AUTOINCREMENT, id_karty INTEGER, username TEXT, password TEXT, imie TEXT, nazwisko TEXT, email TEXT, numer_telefonu TEXT)');
   db.run(`CREATE TABLE IF NOT EXISTS Auto (id_auta INTEGER PRIMARY KEY AUTOINCREMENT,marka TEXT,model TEXT,typ_nadwozia TEXT,rok_produkcji INTEGER,przebieg INTEGER,pojemnosc REAL,moc INTEGER,rodzaj_paliwa TEXT,cena REAL)`);
   db.run(`CREATE TABLE IF NOT EXISTS Karty (id_karty INTEGER PRIMARY KEY AUTOINCREMENT, numer_karty TEXT, kod_cvv TEXT, data_waznosci TEXT)`);
-  // Dodawanie przykładowych rekordów do tabeli Auto
+  db.run(`CREATE TABLE IF NOT EXISTS Transakcje (id_transakcji INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER,id_auta INTEGER, status TEXT, cena REAL, data_transakcji TEXT,data_odbioru TEXT,id_leasingu INTEGER,id_ubezpieczenia INTEGER)`);
+  // Dodawanie przykładowych rekordów do tabeli transakcje (jeśli tabela jest pusta)
+  db.get('SELECT COUNT(*) as count FROM Transakcje', (err, result) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    const recordCount = result.count;
+    if (recordCount === 0) {
+      const insertTransakcje = db.prepare(`
+        INSERT INTO Transakcje (id_user,id_auta,status,cena,data_transakcji,data_odbioru,id_leasingu,id_ubezpieczenia)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      insertTransakcje.run(1,1,'Zapłacono',25000,'2020-01-01','2020-01-02',1,1);
+      insertTransakcje.run(2,2,'Zapłacono',28000,'2020-01-01','2020-01-02',2,2);
+      insertTransakcje.run(3,3,'Zapłacono',22000,'2020-01-01','2020-01-02',3,3);
+      insertTransakcje.run(4,4,'Zapłacono',35000,'2020-01-01','2020-01-02',4,4);
+      insertTransakcje.run(5,5,'Zapłacono',30000,'2020-01-01','2020-01-02',5,5);
+      insertTransakcje.run(6,6,'Zapłacono',32000,'2020-01-01','2020-01-02',6,6);
+      insertTransakcje.run(7,7,'Zapłacono',25000,'2020-01-01','2020-01-02',7,7);
+      insertTransakcje.run(8,8,'Zapłacono',28000,'2020-01-01','2020-01-02',8,8);
+      insertTransakcje.run(9,9,'Zapłacono',22000,'2020-01-01','2020-01-02',9,9);
+      insertTransakcje.run(10,10,'Zapłacono',35000,'2020-01-01','2020-01-02',10,10);
+
+      insertTransakcje.finalize();
+    }
+  });
 
   // Dodawanie przykładowych rekordów do tabeli Auto (jeśli tabela jest pusta)
 db.get('SELECT COUNT(*) as count FROM Auto', (err, result) => {
@@ -84,14 +112,14 @@ db.get('SELECT COUNT(*) as count FROM Auto', (err, result) => {
 app.get('/loggedUserDataIDOnly', authenticateToken, (req, res) => {
   const username = req.user.username; // Pobierz nazwę użytkownika
 
-  db.get('SELECT id FROM Users WHERE username = ?', username, (err, row) => {
+  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
     if (err) {
       console.error(err);
       res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika backend.');
     } else {
       if (row) {
-        const userId = row.id; // Pobierz identyfikator użytkownika z wyniku zapytania
-        res.send({ userId }); // Zwróć identyfikator użytkownika w odpowiedzi
+        const userId_user = row.id_user; // Pobierz identyfikator użytkownika z wyniku zapytania
+        res.send({ userId_user }); // Zwróć identyfikator użytkownika w odpowiedzi
       } else {
         res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
       }
@@ -122,17 +150,17 @@ app.get('/loggedUserData', authenticateToken, (req, res) => {
 app.post('/updateUserData', authenticateToken, (req, res) => {
   const { username, imie, nazwisko, email, numer_telefonu, id_karty } = req.body;
 
-  db.get('SELECT id FROM Users WHERE username = ?', username, (err, row) => {
+  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
     if (err) {
       console.error(err);
       return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
     }
 
     if (row) {
-      const userId = row.id; // Retrieve the user ID from the query result
+      const userId_user = row.id_user; // Retrieve the user ID from the query result
       db.run(
-        'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id = ?',
-        [username, imie, nazwisko, email, numer_telefonu, id_karty, userId],
+        'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id_user = ?',
+        [username, imie, nazwisko, email, numer_telefonu, id_karty, userId_user],
         (err) => {
           if (err) {
             console.error(err);
@@ -146,11 +174,7 @@ app.post('/updateUserData', authenticateToken, (req, res) => {
     }
   });
 });
-
-
-
-
-  
+ 
 
 // Endpoint dodawania karty
 app.post('/add_card', authenticateToken, (req, res) => {
@@ -308,6 +332,18 @@ app.get('/cards', authenticateToken, (req, res) => {
 // Endpoint pobierający listę użytkowników
 app.get('/users', authenticateToken, (req, res) => {
   db.all('SELECT * FROM Users', (err, rows) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Wystąpił błąd serwera' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+
+app.get('/transactions', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM Transakcje', (err, rows) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Wystąpił błąd serwera' });
