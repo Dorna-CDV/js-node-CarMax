@@ -45,7 +45,7 @@ db.serialize(() => {
       console.error(err);
       return;
     }
-
+/*
     const recordCount = result.count;
     if (recordCount === 0) {
       const insertTransakcje = db.prepare(`
@@ -65,7 +65,7 @@ db.serialize(() => {
       insertTransakcje.run(10,10,'Zapłacono',35000,'2020-01-01','2020-01-02',10,10);
 
       insertTransakcje.finalize();
-    }
+    }*/
   });
 
   // Dodawanie przykładowych rekordów do tabeli Auto (jeśli tabela jest pusta)
@@ -175,6 +175,38 @@ app.post('/updateUserData', authenticateToken, (req, res) => {
   });
 });
  
+
+// Endpoint dodawania transakcji
+app.post('/add_transaction', authenticateToken, (req, res) => {
+  // Odbierz dane z formularza
+  const { username, id_auta, status, cena } = req.body;
+  // Wykonaj logikę dodawania karty do bazy danych
+
+  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
+    }
+
+    if (row) {
+      const userId_user = row.id_user; // Retrieve the user ID from the query result
+
+  db.run('INSERT INTO Transakcje (id_user,id_auta,status,cena,data_transakcji,data_odbioru,id_leasingu,id_ubezpieczenia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [userId_user,id_auta,status,cena,'2020-01-01','2020-01-02',11,11], (err) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Wystąpił błąd serwera podczas dodawania transakcji.');
+    }
+
+    res.status(200).json({messange:"Transakcja dodana"
+    });
+  });
+} else {
+  res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
+}
+  });
+});
+
+
 
 // Endpoint dodawania karty
 app.post('/add_card', authenticateToken, (req, res) => {

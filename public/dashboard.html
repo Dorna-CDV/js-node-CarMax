@@ -144,6 +144,7 @@
         <th>Moc</th>
         <th>Rodzaj paliwa</th>
         <th>Cena</th>
+        <th>Akcja</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -178,6 +179,43 @@
 
 
 <script>
+
+function getCurrentUserName() {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    return null; // No user is logged in
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const username = payload.username;
+    return username; // Return the username
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+
+/*
+function displayCarDataInNewDiv(car) {
+  const newDiv = document.createElement('div');
+  newDiv.textContent = `
+    Marka: ${car.marka},
+    Model: ${car.model},
+    Typ nadwozia: ${car.typ_nadwozia},
+    Rok produkcji: ${car.rok_produkcji},
+    Przebieg: ${car.przebieg},
+    Pojemność: ${car.pojemnosc},
+    Moc: ${car.moc},
+    Rodzaj paliwa: ${car.rodzaj_paliwa},
+    Cena: ${car.cena}
+  `;
+  document.body.appendChild(newDiv);
+}
+*/
+function buttonUserPanel(){
 // Tworzenie przycisku
 const button = document.createElement('button');
 button.textContent = 'Panel użytkownika';
@@ -190,6 +228,8 @@ button.addEventListener('click', () => {
 // Dodawanie przycisku do kontenera na stronie
 const container = document.getElementById('container'); // Przykładowy identyfikator kontenera
 container.appendChild(button);
+}
+
 
 
 
@@ -219,21 +259,30 @@ function fetchCarsData(){
       tbody.innerHTML = ''; // Wyczyść zawartość tabeli
 
       data.forEach(car => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <!-- <td>${car.id_auta}</td> -->
-          <td>${car.marka}</td>
-          <td>${car.model}</td>
-          <td>${car.typ_nadwozia}</td>
-          <td>${car.rok_produkcji}</td>
-          <td>${car.przebieg}</td>
-          <td>${car.pojemnosc}</td>
-          <td>${car.moc}</td>
-          <td>${car.rodzaj_paliwa}</td>
-          <td>${car.cena}</td>
-        `;
-        tbody.appendChild(row);
-      });
+    const row = document.createElement('tr');
+    const buyButton = document.createElement('button');
+    buyButton.textContent = 'Kup';
+    
+    buyButton.addEventListener('click', () => {
+      AddTransaction(car);
+    });
+
+    row.innerHTML = `
+      <!-- <td>${car.id_auta}</td> -->
+      <td>${car.marka}</td>
+      <td>${car.model}</td>
+      <td>${car.typ_nadwozia}</td>
+      <td>${car.rok_produkcji}</td>
+      <td>${car.przebieg}</td>
+      <td>${car.pojemnosc}</td>
+      <td>${car.moc}</td>
+      <td>${car.rodzaj_paliwa}</td>
+      <td>${car.cena}</td>
+      <td></td>
+    `;
+    row.querySelector('td:last-child').appendChild(buyButton);
+    tbody.appendChild(row);
+});
     })
     .catch(error => {
       console.error(error);
@@ -295,10 +344,60 @@ function fetchTransactionsData(){
 }
 
 
+function AddTransaction(car){
+  const token = localStorage.getItem('token');
+  
+
+   
+
+    //var cardNumber = document.getElementById('card-number').value;
+    //var cvvCode = document.getElementById('cvv-code').value;
+   // var expirationDate = document.getElementById('expiration-date').value;
+
+    // Wykonaj żądanie POST do endpointu dodawania karty
+    fetch('http://localhost/add_transaction', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Dodaj nagłówek autoryzacji
+      },
+      body: JSON.stringify({
+        username: getCurrentUserName(),
+        id_auta: car.id_auta,
+        status:"Kupione",
+        cena:car.cena
+      })
+    })
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Błąd dodawania transakcji');
+        }
+      })
+      .then(function(data) {
+        // Obsłuż odpowiedź po dodaniu karty
+        console.log(data);
+        alert('Transakcja została dodana.');
+        // Możesz wyświetlić komunikat o sukcesie lub zaktualizować tabelę z kartami
+       fetchTransactionsData();// Pobierz ponownie dane kart po dodaniu
+      })
+      .catch(function(error) {
+        console.error(error);
+        alert('Wystąpił błąd podczas dodawania transakcji.');
+      });
+  
+}
+
+
+
 
 fetchCarsData();
 fetchTransactionsData();
 logoutButton();
+buttonUserPanel();
+
+
 </script>
 </body>
 </html>
