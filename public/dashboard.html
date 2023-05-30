@@ -389,7 +389,63 @@ function AddTransaction(car){
   
 }
 
+function filterCarsByPrice() {
+  const minPriceInput = document.getElementById('min-price-input');
+  const maxPriceInput = document.getElementById('max-price-input');
+  const minPrice = parseFloat(minPriceInput.value);
+  const maxPrice = parseFloat(maxPriceInput.value);
 
+  const carsTable = document.getElementById('cars-table');
+  const tbody = carsTable.querySelector('tbody');
+  const rows = tbody.querySelectorAll('tr');
+
+  rows.forEach(row => {
+    const priceCell = row.querySelector('td:nth-child(9)');
+    const price = parseFloat(priceCell.textContent);
+
+    if (isNaN(minPrice) && isNaN(maxPrice)) {
+      row.style.display = 'table-row';
+    } else if (isNaN(minPrice)) {
+      if (price <= maxPrice) {
+        row.style.display = 'table-row';
+      } else {
+        row.style.display = 'none';
+      }
+    } else if (isNaN(maxPrice)) {
+      if (price >= minPrice) {
+        row.style.display = 'table-row';
+      } else {
+        row.style.display = 'none';
+      }
+    } else {
+      if (price >= minPrice && price <= maxPrice) {
+        row.style.display = 'table-row';
+      } else {
+        row.style.display = 'none';
+      }
+    }
+  });
+}
+
+
+// ...
+
+// Dodaj elementy filtrujące na stronie
+const filterContainer = document.createElement('div');
+filterContainer.innerHTML = `
+  <label for="min-price-input">Cena od:</label>
+  <input type="number" id="min-price-input" min="0" step="100">
+  <label for="max-price-input">Cena do:</label>
+  <input type="number" id="max-price-input" min="0" step="100">
+  <button id="filter-button">Filtruj</button>
+`;
+
+const container = document.getElementById('container');
+container.appendChild(filterContainer);
+
+// Dodaj obsługę zdarzenia dla przycisku filtrującego
+const filterButton = document.getElementById('filter-button');
+filterButton.addEventListener('click', filterCarsByPrice);
 
 
 fetchCarsData();
