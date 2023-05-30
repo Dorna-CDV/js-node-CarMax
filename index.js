@@ -386,11 +386,11 @@ app.get('/transactions', authenticateToken, (req, res) => {
 });
 
 
-/*
+
 // pobranie z cepika
 app.get('/cepik', async (req, res) => {
   try {
-    const response = await axios.get('https://api.cepik.gov.pl/pojazdy?wojewodztwo=30&data-od=20221212&data-do=20230505&typ-daty=1&tylko-zarejestrowane=true&pokaz-wszystkie-pola=false&limit=100&page=1');
+    const response = await axios.get('https://api.cepik.gov.pl/slowniki/marka');
     const data = response.data;
     res.send(data);
   } catch (error) {
@@ -398,7 +398,7 @@ app.get('/cepik', async (req, res) => {
     res.status(500).send('Wystąpił błąd podczas komunikacji z CEPIK API.');
   }
 });
-*/
+
 
 
 
