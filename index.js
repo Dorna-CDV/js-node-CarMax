@@ -41,7 +41,7 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS Transakcje (id_transakcji INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER,id_auta INTEGER, status TEXT, cena REAL, data_transakcji TEXT,data_odbioru TEXT,id_leasingu INTEGER,id_ubezpieczenia INTEGER)`);
 db.run('CREATE TABLE IF NOT EXISTS Ulubione(id_ulubione INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER, id_auta INTEGER)');
 db.run('CREATE TABLE IF NOT EXISTS Oceny(id_ocena INTEGER PRIMARY KEY AUTOINCREMENT, id_transakcja INTEGER, ocena INTEGER, komentarz TEXT)');
-db.run('CREATE TABLE IF NOT EXISTS jazda_testowa(id_jazdy INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER; id_auta INTEGER, data TEXT)');
+db.run('CREATE TABLE IF NOT EXISTS jazda_testowa(id_jazdy INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER, id_auta INTEGER, data TEXT)');
   // Dodawanie przykładowych rekordów do tabeli transakcje (jeśli tabela jest pusta)
   db.get('SELECT COUNT(*) as count FROM Transakcje', (err, result) => {
     if (err) {
