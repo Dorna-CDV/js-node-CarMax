@@ -430,23 +430,22 @@ app.get('/ulubione', authenticateToken, (req, res) => {
 
 //Endpoint oceniający transakcję
 app.post('/Oceny/ocena', authenticateToken, (req, res) => {
-  const { id_transakcja } = req.body;
-  const { ocena } = req.body;
+  const { id_transakcja, ocena } = req.body;
 
-  if (!ocena) {
-    return res.status(400).json({ error: 'Ocena jest wymagana' });
+  if (!id_transakcja || !ocena) {
+    return res.status(400).json({ error: 'ID transakcji i ocena są wymagane' });
   }
 
-  db.run('UPDATE Oceny SET ocena = ? , id_transakcja = ?', [ocena, id_transakcja], function (
-    err
-  ) {
+  db.run('INSERT INTO Oceny (id_transakcja, ocena) VALUES (?, ?)', [id_transakcja, ocena], function (err) {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Wystąpił błąd serwera' });
-    } else if (this.changes === 0) {
-      res.status(404).json({ error: 'Nie znaleziono transakcji o podanym ID' });
     } else {
-      res.json({ message: 'Transakcja oceniona pomyślnie' });
+      if (this.changes === 0) {
+        res.status(404).json({ error: 'Nie znaleziono transakcji o podanym ID' });
+      } else {
+        res.json({ message: 'Transakcja oceniona pomyślnie' });
+      }
     }
   });
 });
