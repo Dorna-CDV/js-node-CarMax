@@ -448,6 +448,20 @@ app.get('/ulubione', authenticateToken, (req, res) => {
 });
 
 
+// Endpoint pobierający listę ulubionych
+app.get('/Oceny', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM Oceny', (err, rows) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Wystąpił błąd serwera' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+
+
 //Endpoint oceniający transakcję
 app.post('/transactions/:id_user,id_auta/ocena', authenticateToken, (req, res) => {
   const { id_user } = req.params;
