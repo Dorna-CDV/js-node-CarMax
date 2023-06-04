@@ -152,31 +152,21 @@ app.get('/loggedUserData', authenticateToken, (req, res) => {
 
 app.post('/updateUserData', authenticateToken, (req, res) => {
   const { username, imie, nazwisko, email, numer_telefonu, id_karty } = req.body;
-
-  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
+  const userId_user = req.user.id_user; // Pobieramy id_user z payloadu tokenu
+  console.log(req.body);
+  db.run(
+    'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id_user = ?',
+    [username, imie, nazwisko, email, numer_telefonu, id_karty, userId_user],
+    (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Wystąpił błąd serwera podczas aktualizacji danych użytkownika.');
+      }
+      res.status(200).json({ message: 'Dane użytkownika zostały zaktualizowane.' });
     }
-
-    if (row) {
-      const userId_user = row.id_user; // Retrieve the user ID from the query result
-      db.run(
-        'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id_user = ?',
-        [username, imie, nazwisko, email, numer_telefonu, id_karty, userId_user],
-        (err) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).send('Wystąpił błąd serwera podczas aktualizacji danych użytkownika.');
-          }
-          res.status(200).send('Dane użytkownika zostały zaktualizowane.');
-        }
-      );
-    } else {
-      res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
-    }
-  });
+  );
 });
+
  
 
 // Endpoint dodawania transakcji
@@ -292,25 +282,17 @@ app.post('/login', (req, res) => {
 
       if (result) {
         // Jeśli uwierzytelnienie jest prawidłowe, generujemy token JWT
-        db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
-          }
-          const userId_user = row.id_user; // Pobierz identyfikator użytkownika z wyniku zapytania
-          
-          const token = jwt.sign({ username }, secret, { expiresIn: '1h' }, userId_user);
-          return res.status(200).json({ token }); // Zwracamy token w odpowiedzi
-        
-        });
-
-        
+        // Dodajemy id_user do payloadu
+        const payload = { username, id_user: row.id_user };
+        const token = jwt.sign(payload, secret, { expiresIn: '1h' });
+        return res.status(200).json({ token }); // Zwracamy token w odpowiedzi
       } else {
         return res.status(401).send('Nieprawidłowa nazwa użytkownika lub hasło.');
       }
     });
   });
 });
+
 
 
 
