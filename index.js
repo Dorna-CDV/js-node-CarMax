@@ -5,6 +5,21 @@ const bcrypt = require('bcrypt'); // to do hashowania haseł
 const path = require('path');
 const cors = require('cors'); // zeby frontend i backend moglo byc z innej domeny ?
 const jwt = require('jsonwebtoken');
+const PasswordValidator = require('password-validator');
+
+
+// Tworzenie nowego schematu walidacji hasła
+let schema = new PasswordValidator();
+
+schema
+.is().min(8)                                      // Minimalna długość: 8
+.is().max(100)                                    // Maksymalna długość: 100
+.has().uppercase()                                // Musi zawierać jedną dużą literę
+.has().lowercase()                                // Musi zawierać jedną małą literę
+.has().digits(2)                                  // Musi zawierać co najmniej dwie cyfry
+.has().not().spaces()                             // Nie może zawierać spacji
+.is().not().oneOf(['Passw0rd', 'Password123']);   // Czarne listowanie tych haseł
+
 
 // Tworzenie instancji aplikacji Express
 const app = express();
@@ -213,9 +228,14 @@ app.post('/add_card', authenticateToken, (req, res) => {
 });
 
 
-// Endpoint rejestracji użytkownika
 app.post('/register', (req, res) => {
   const { username, password } = req.body;
+
+  // Walidacja hasła
+  const validation = schema.validate(password, { list: true });
+  if (validation.length > 0) {
+    return res.status(400).send('Hasło nie spełnia wymagań bezpieczeństwa.');
+  }
 
   // Sprawdź, czy użytkownik już istnieje w bazie danych
   db.get('SELECT * FROM users WHERE username = ?', username, (err, row) => {
