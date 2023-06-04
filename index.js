@@ -39,9 +39,9 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS Auto (id_auta INTEGER PRIMARY KEY AUTOINCREMENT,marka TEXT,model TEXT,typ_nadwozia TEXT,rok_produkcji INTEGER,przebieg INTEGER,pojemnosc REAL,moc INTEGER,rodzaj_paliwa TEXT,cena REAL)`);
   db.run(`CREATE TABLE IF NOT EXISTS Karty (id_karty INTEGER PRIMARY KEY AUTOINCREMENT, numer_karty TEXT, kod_cvv TEXT, data_waznosci TEXT)`);
   db.run(`CREATE TABLE IF NOT EXISTS Transakcje (id_transakcji INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER,id_auta INTEGER, status TEXT, cena REAL, data_transakcji TEXT,data_odbioru TEXT,id_leasingu INTEGER,id_ubezpieczenia INTEGER)`);
-db.run('CREATE TABLE IF NOT EXISTS Ulubione(id_ulubione INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER, id_auta INTEGER)');
-db.run('CREATE TABLE IF NOT EXISTS Oceny(id_ocena INTEGER PRIMARY KEY AUTOINCREMENT, id_transakcja INTEGER, ocena INTEGER, komentarz TEXT)');
-db.run('CREATE TABLE IF NOT EXISTS jazda_testowa(id_jazdy INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER, id_auta INTEGER, data TEXT)');
+  db.run('CREATE TABLE IF NOT EXISTS Ulubione(id_ulubione INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER, id_auta INTEGER)');
+  db.run('CREATE TABLE IF NOT EXISTS Oceny(id_ocena INTEGER PRIMARY KEY AUTOINCREMENT, id_transakcja INTEGER, ocena INTEGER, komentarz TEXT)');
+  db.run('CREATE TABLE IF NOT EXISTS jazda_testowa(id_jazdy INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER, id_auta INTEGER, data TEXT)');
   // Dodawanie przykładowych rekordów do tabeli transakcje (jeśli tabela jest pusta)
   db.get('SELECT COUNT(*) as count FROM Transakcje', (err, result) => {
     if (err) {
@@ -152,31 +152,21 @@ app.get('/loggedUserData', authenticateToken, (req, res) => {
 
 app.post('/updateUserData', authenticateToken, (req, res) => {
   const { username, imie, nazwisko, email, numer_telefonu, id_karty } = req.body;
-
-  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
+  const userId_user = req.user.id_user; // Pobieramy id_user z payloadu tokenu
+  console.log(req.body);
+  db.run(
+    'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id_user = ?',
+    [username, imie, nazwisko, email, numer_telefonu, id_karty, userId_user],
+    (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Wystąpił błąd serwera podczas aktualizacji danych użytkownika.');
+      }
+      res.status(200).json({ message: 'Dane użytkownika zostały zaktualizowane.' });
     }
-
-    if (row) {
-      const userId_user = row.id_user; // Retrieve the user ID from the query result
-      db.run(
-        'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id_user = ?',
-        [username, imie, nazwisko, email, numer_telefonu, id_karty, userId_user],
-        (err) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).send('Wystąpił błąd serwera podczas aktualizacji danych użytkownika.');
-          }
-          res.status(200).send('Dane użytkownika zostały zaktualizowane.');
-        }
-      );
-    } else {
-      res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
-    }
-  });
+  );
 });
+
  
 
 // Endpoint dodawania transakcji
@@ -292,7 +282,9 @@ app.post('/login', (req, res) => {
 
       if (result) {
         // Jeśli uwierzytelnienie jest prawidłowe, generujemy token JWT
-        const token = jwt.sign({ username }, secret, { expiresIn: '1h' });
+        // Dodajemy id_user do payloadu
+        const payload = { username, id_user: row.id_user };
+        const token = jwt.sign(payload, secret, { expiresIn: '1h' });
         return res.status(200).json({ token }); // Zwracamy token w odpowiedzi
       } else {
         return res.status(401).send('Nieprawidłowa nazwa użytkownika lub hasło.');
@@ -300,6 +292,7 @@ app.post('/login', (req, res) => {
     });
   });
 });
+
 
 
 
@@ -471,6 +464,23 @@ app.get('/cepik', async (req, res) => {
     res.status(500).send('Wystąpił błąd podczas komunikacji z CEPIK API.');
   }
 });
+
+
+
+
+// Endpoint pobierający listę ulubionych
+app.get('/ulubione', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM Ulubione', (err, rows) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Wystąpił błąd serwera' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+
 
 
 

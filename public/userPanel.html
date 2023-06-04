@@ -362,6 +362,8 @@ function updateUserData() {
     var numer_telefonu = document.getElementById('numer_telefonu').value;
     var selectedCardId = document.getElementById('card-dropdown').value; 
 
+    
+
     // Wykonaj żądanie POST do endpointu aktualizacji danych użytkownika
     fetch('http://localhost/updateUserData', {
       method: 'POST',
@@ -370,7 +372,7 @@ function updateUserData() {
         'Authorization': `Bearer ${token}` // Dodaj nagłówek autoryzacji
       },
       body: JSON.stringify({
-        username: username, // Retrieve the username from somewhere or remove if not needed
+      username: username, // Retrieve the username from somewhere or remove if not needed
       imie: imie,
       nazwisko: nazwisko,
       email: email,
@@ -398,7 +400,22 @@ function updateUserData() {
 
 
 
+function getCurrentUserID() {
+  const token = localStorage.getItem('token');
 
+  if (!token) {
+    return null; // No user is logged in
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const id_user = payload.id_user;
+    return id_user; // Return the username
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
 
 
 
