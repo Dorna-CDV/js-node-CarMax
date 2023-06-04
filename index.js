@@ -173,16 +173,9 @@ app.post('/updateUserData', authenticateToken, (req, res) => {
 app.post('/add_transaction', authenticateToken, (req, res) => {
   // Odbierz dane z formularza
   const { username, id_auta, status, cena } = req.body;
+  const userId_user = req.user.id_user; // Pobieramy id_user z payloadu tokenu
   // Wykonaj logikę dodawania karty do bazy danych
 
-  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
-    }
-
-    if (row) {
-      const userId_user = row.id_user; // Retrieve the user ID from the query result
 
   db.run('INSERT INTO Transakcje (id_user,id_auta,status,cena,data_transakcji,data_odbioru,id_leasingu,id_ubezpieczenia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [userId_user,id_auta,status,cena,'2020-01-01','2020-01-02',11,11], (err) => {
     if (err) {
@@ -193,11 +186,9 @@ app.post('/add_transaction', authenticateToken, (req, res) => {
     res.status(200).json({messange:"Transakcja dodana"
     });
   });
-} else {
-  res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
-}
+
   });
-});
+
 
 
 
