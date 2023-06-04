@@ -1,11 +1,11 @@
-const express = require('express'); // to jest zeby postawic serwer http
-const axios = require('axios'); // to jest zeby polaczyc sie do zewnetrzego api w naszym przypadku CEPIK
-const sqlite3 = require('sqlite3'); // to jest do bazy danych w naszym przypadku SQLite
-const bcrypt = require('bcrypt'); // to do hashowania haseł
+const express = require('express'); //serwer http
+const axios = require('axios'); // polaczenie sie do zewnetrzego api w naszym przypadku CEPIK
+const sqlite3 = require('sqlite3'); // baza danych, w naszym przypadku SQLite
+const bcrypt = require('bcrypt'); // do hashowania haseł
 const path = require('path');
-const cors = require('cors'); // zeby frontend i backend moglo byc z innej domeny ?
+const cors = require('cors'); 
 const jwt = require('jsonwebtoken');
-const PasswordValidator = require('password-validator');
+const PasswordValidator = require('password-validator'); // walidacja hasła
 
 
 // Tworzenie nowego schematu walidacji hasła
