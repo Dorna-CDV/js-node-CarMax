@@ -437,7 +437,7 @@ app.post('/Oceny/ocena', authenticateToken, (req, res) => {
     return res.status(400).json({ error: 'Ocena jest wymagana' });
   }
 
-  db.run('UPDATE Oceny SET ocena = ? WHERE id_transakcja = ?', [ocena, id_transakcja], function (
+  db.run('UPDATE Oceny SET ocena = ? , id_transakcja = ?', [ocena, id_transakcja], function (
     err
   ) {
     if (err) {
