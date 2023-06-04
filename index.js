@@ -443,7 +443,7 @@ app.get('/ulubione', authenticateToken, (req, res) => {
 
 app.get('/preferred_cars_offers', authenticateToken, (req, res) => {
   const { car_type } = req.body;
-  db.all('SELECT * FROM Auto WHERE type = ?', [car_type], (err, rows) => {
+  db.all('SELECT * FROM Auto WHERE typ_nadwozia = ?', [car_type], (err, rows) => {
     if (err) {
       console.error(err);
       res.status(500).json({ error: 'Wystąpił błąd serwera' });
