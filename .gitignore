@@ -1,6 +1,5 @@
-/database
 <<<<<<< HEAD
-/node_modules
+/database/database.db
 =======
-/node_modules
->>>>>>> 2e55514a9eb29ef5e6b75d631ddcccd577b848dd
+/database/database.db
+>>>>>>> cb7ca2979b4e01fdeccaac4f394b0ca5d2c94d87

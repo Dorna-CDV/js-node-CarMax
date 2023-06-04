@@ -1,10 +1,25 @@
-const express = require('express'); // to jest zeby postawic serwer http
-const axios = require('axios'); // to jest zeby polaczyc sie do zewnetrzego api w naszym przypadku CEPIK
-const sqlite3 = require('sqlite3'); // to jest do bazy danych w naszym przypadku SQLite
-const bcrypt = require('bcrypt'); // to do hashowania haseł
+const express = require('express'); //serwer http
+const axios = require('axios'); // polaczenie sie do zewnetrzego api w naszym przypadku CEPIK
+const sqlite3 = require('sqlite3'); // baza danych, w naszym przypadku SQLite
+const bcrypt = require('bcrypt'); // do hashowania haseł
 const path = require('path');
-const cors = require('cors'); // zeby frontend i backend moglo byc z innej domeny ?
+const cors = require('cors'); 
 const jwt = require('jsonwebtoken');
+const PasswordValidator = require('password-validator'); // walidacja hasła
+
+
+// Tworzenie nowego schematu walidacji hasła
+let schema = new PasswordValidator();
+
+schema
+.is().min(8)                                      // Minimalna długość: 8
+.is().max(100)                                    // Maksymalna długość: 100
+.has().uppercase()                                // Musi zawierać jedną dużą literę
+.has().lowercase()                                // Musi zawierać jedną małą literę
+.has().digits(2)                                  // Musi zawierać co najmniej dwie cyfry
+.has().not().spaces()                             // Nie może zawierać spacji
+.is().not().oneOf(['Passw0rd', 'Password123']);   // Czarne listowanie tych haseł
+
 
 // Tworzenie instancji aplikacji Express
 const app = express();
@@ -213,9 +228,14 @@ app.post('/add_card', authenticateToken, (req, res) => {
 });
 
 
-// Endpoint rejestracji użytkownika
 app.post('/register', (req, res) => {
   const { username, password } = req.body;
+
+  // Walidacja hasła
+  const validation = schema.validate(password, { list: true });
+  if (validation.length > 0) {
+    return res.status(400).send('Hasło nie spełnia wymagań bezpieczeństwa.');
+  }
 
   // Sprawdź, czy użytkownik już istnieje w bazie danych
   db.get('SELECT * FROM users WHERE username = ?', username, (err, row) => {
@@ -426,6 +446,20 @@ app.get('/ulubione', authenticateToken, (req, res) => {
     }
   });
 });
+
+
+// Endpoint pobierający listę ulubionych
+app.get('/Oceny', authenticateToken, (req, res) => {
+  db.all('SELECT * FROM Oceny', (err, rows) => {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Wystąpił błąd serwera' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
 
 
 //Endpoint oceniający transakcję
