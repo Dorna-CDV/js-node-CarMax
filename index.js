@@ -292,8 +292,19 @@ app.post('/login', (req, res) => {
 
       if (result) {
         // Jeśli uwierzytelnienie jest prawidłowe, generujemy token JWT
-        const token = jwt.sign({ username }, secret, { expiresIn: '1h' });
-        return res.status(200).json({ token }); // Zwracamy token w odpowiedzi
+        db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
+          }
+          const userId_user = row.id_user; // Pobierz identyfikator użytkownika z wyniku zapytania
+          
+          const token = jwt.sign({ username }, secret, { expiresIn: '1h' }, userId_user);
+          return res.status(200).json({ token }); // Zwracamy token w odpowiedzi
+        
+        });
+
+        
       } else {
         return res.status(401).send('Nieprawidłowa nazwa użytkownika lub hasło.');
       }
