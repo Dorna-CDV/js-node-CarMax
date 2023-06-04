@@ -153,7 +153,7 @@ app.get('/loggedUserData', authenticateToken, (req, res) => {
 app.post('/updateUserData', authenticateToken, (req, res) => {
   const { username, imie, nazwisko, email, numer_telefonu, id_karty } = req.body;
   const userId_user = req.user.id_user; // Pobieramy id_user z payloadu tokenu
-  console.log(req.body);
+  //console.log(req.body);
   db.run(
     'UPDATE Users SET username = ?, imie = ?, nazwisko = ?, email = ?, numer_telefonu = ?, id_karty = ? WHERE id_user = ?',
     [username, imie, nazwisko, email, numer_telefonu, id_karty, userId_user],
@@ -385,16 +385,10 @@ app.get('/transactions', authenticateToken, (req, res) => {
 app.post('/umow_jazde_testowa', authenticateToken, (req, res) => {
   // Odbierz dane z formularza
   const { username, id_auta, data } = req.body;
-  
+  const userId_user = req.user.id_user; // Pobieramy id_user z payloadu tokenu
   // Wykonaj logikę umawiania jazdy testowej w bazie danych
-  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
-    }
-
-    if (row) {
-      const userId_user = row.id_user; // Pobierz identyfikator użytkownika z wyniku zapytania
+  
+      
 
       db.run('INSERT INTO jazda_testowa (id_user, id_auta, data) VALUES (?, ?, ?)', [userId_user, id_auta, data], (err) => {
         if (err) {
@@ -404,11 +398,8 @@ app.post('/umow_jazde_testowa', authenticateToken, (req, res) => {
 
         res.status(200).json({ message: "Jazda testowa umówiona" });
       });
-    } else {
-      res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
-    }
+    
   });
-});
 
 
 
