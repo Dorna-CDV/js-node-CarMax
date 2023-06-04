@@ -346,6 +346,7 @@ app.get('/cars', authenticateToken, (req, res) => {
 
 
 app.get('/cards', authenticateToken, (req, res) => {
+  const userId_user = req.user.id_user; // Pobieramy id_user z payloadu tokenu
   db.all('SELECT * FROM Karty', (err, rows) => {
     if (err) {
       console.error(err);
@@ -355,6 +356,10 @@ app.get('/cards', authenticateToken, (req, res) => {
     }
   });
 });
+
+
+
+
 
 
 // Endpoint pobierający listę użytkowników
