@@ -410,47 +410,7 @@ app.post('/umow_jazde_testowa', authenticateToken, (req, res) => {
   });
 });
 
-// Endpoint przeglądania ofert stworzonych pod preferencje użytkownika
-app.get('/preferred_offers', authenticateToken, (req, res) => {
-  const username = req.user.username;
 
-  db.get('SELECT id_user FROM Users WHERE username = ?', username, (err, row) => {
-      if (err) {
-          console.error(err);
-          return res.status(500).send('Wystąpił błąd podczas pobierania danych użytkownika z bazy danych.');
-      }
-
-      if (row) {
-          const userId = row.id_user; // Pobierz identyfikator użytkownika z wyniku zapytania
-
-          // Pobierz preferencje użytkownika dotyczące typu nadwozia
-          db.get('SELECT preferred_body_type FROM UserPreferences WHERE id_user = ?', userId, (err, preferenceRow) => {
-              if (err) {
-                  console.error(err);
-                  return res.status(500).send('Wystąpił błąd serwera podczas pobierania preferencji użytkownika.');
-              }
-
-              if (preferenceRow) {
-                  const preferredBodyType = preferenceRow.preferred_body_type;
-
-                  // Pobierz oferty spełniające preferencje użytkownika dotyczące typu nadwozia
-                  db.all('SELECT * FROM Oferty WHERE id_user = ? AND body_type = ?', [userId, preferredBodyType], (err, rows) => {
-                      if (err) {
-                          console.error(err);
-                          return res.status(500).send('Wystąpił błąd serwera podczas pobierania ofert.');
-                      }
-
-                      res.status(200).json(rows);
-                  });
-              } else {
-                  res.status(404).send('Nie znaleziono preferencji użytkownika.');
-              }
-          });
-      } else {
-          res.status(404).send('Użytkownik o podanej nazwie nie został znaleziony.');
-      }
-  });
-});
 
 
 // pobranie z cepika
