@@ -429,15 +429,15 @@ app.get('/ulubione', authenticateToken, (req, res) => {
 
 
 //Endpoint oceniający transakcję
-app.post('/transactions/ocena', authenticateToken, (req, res) => {
-  const { id_transakcji } = req.body;
+app.post('/Oceny/ocena', authenticateToken, (req, res) => {
+  const { id_transakcja } = req.body;
   const { ocena } = req.body;
 
   if (!ocena) {
     return res.status(400).json({ error: 'Ocena jest wymagana' });
   }
 
-  db.run('UPDATE Transakcje SET ocena = ? WHERE id_transakcji = ?', [ocena, id_transakcji], function (
+  db.run('UPDATE Oceny SET ocena = ? WHERE id_transakcja = ?', [ocena, id_transakcja], function (
     err
   ) {
     if (err) {
